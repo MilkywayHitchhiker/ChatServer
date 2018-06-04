@@ -1,0 +1,5 @@
+
+[00000002] [ ChatServer ] [2018-06-04 10:37:04 / SYSTEM ]  update_thread_Start
+[00000001] [ ChatServer ] [2018-06-04 11:04:38 / SYSTEM ]  update_thread_Start
+[00000002] [ ChatServer ] [2018-06-04 11:05:58 / SYSTEM ]  update_thread_Start
+[00000001] [ ChatServer ] [2018-06-04 11:06:09 / SYSTEM ]  update_thread_Start

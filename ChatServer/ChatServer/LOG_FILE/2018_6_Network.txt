@@ -1,0 +1,21 @@
+
+[00000001] [ Network ] [2018-06-04 10:37:04 / SYSTEM ]   NetworkStart IP = 127.0.0.1, PORT = 6000, SessionMax = 5000, WorkerThreadNum = 3
+[00000003] [ Network ] [2018-06-04 10:37:04 / SYSTEM ]  AcceptThread_Start
+[00000004] [ Network ] [2018-06-04 10:37:04 / SYSTEM ]  Worker Thread_Start
+[00000005] [ Network ] [2018-06-04 10:37:04 / SYSTEM ]  Worker Thread_Start
+[00000006] [ Network ] [2018-06-04 10:37:04 / SYSTEM ]  Worker Thread_Start
+[00000002] [ Network ] [2018-06-04 11:04:38 / SYSTEM ]   NetworkStart IP = 127.0.0.1, PORT = 6000, SessionMax = 5000, WorkerThreadNum = 3
+[00000003] [ Network ] [2018-06-04 11:04:38 / SYSTEM ]  AcceptThread_Start
+[00000004] [ Network ] [2018-06-04 11:04:38 / SYSTEM ]  Worker Thread_Start
+[00000005] [ Network ] [2018-06-04 11:04:39 / SYSTEM ]  Worker Thread_Start
+[00000006] [ Network ] [2018-06-04 11:04:39 / SYSTEM ]  Worker Thread_Start
+[00000001] [ Network ] [2018-06-04 11:05:57 / SYSTEM ]   NetworkStart IP = 127.0.0.1, PORT = 6000, SessionMax = 5000, WorkerThreadNum = 3
+[00000003] [ Network ] [2018-06-04 11:05:58 / SYSTEM ]  Worker Thread_Start
+[00000004] [ Network ] [2018-06-04 11:05:58 / SYSTEM ]  Worker Thread_Start
+[00000005] [ Network ] [2018-06-04 11:05:58 / SYSTEM ]  Worker Thread_Start
+[00000006] [ Network ] [2018-06-04 11:05:58 / SYSTEM ]  AcceptThread_Start
+[00000002] [ Network ] [2018-06-04 11:06:09 / SYSTEM ]   NetworkStart IP = 127.0.0.1, PORT = 6000, SessionMax = 5000, WorkerThreadNum = 3
+[00000003] [ Network ] [2018-06-04 11:06:09 / SYSTEM ]  AcceptThread_Start
+[00000004] [ Network ] [2018-06-04 11:06:09 / SYSTEM ]  Worker Thread_Start
+[00000005] [ Network ] [2018-06-04 11:06:09 / SYSTEM ]  Worker Thread_Start
+[00000006] [ Network ] [2018-06-04 11:06:09 / SYSTEM ]  Worker Thread_Start
