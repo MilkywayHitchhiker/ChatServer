@@ -94,7 +94,7 @@ public:
 	// 데이타 삽입.
 	// Return 복사한 사이즈.
 	int		PutData(char *chpSrc, int iSrcSize);
-	int		PutHeader (char *chpSrc, int iSrcSize);
+
 
 protected:
 
@@ -135,8 +135,10 @@ protected:
 	//------------------------------------------------------------
 	int iRefCnt;
 
-public :
+private :
 	static CMemoryPool<Packet> *PacketPool;
+
+	int	PutHeader (char *chpSrc, int iSrcSize);
 
 public :
 	
@@ -166,6 +168,7 @@ public :
 		}
 		return true;
 	}
-
+	friend class CNetServer;
+	friend class CLanServer;
 
 };

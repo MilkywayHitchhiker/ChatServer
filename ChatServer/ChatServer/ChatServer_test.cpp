@@ -4,11 +4,35 @@
 #include "stdafx.h"
 #include "NetServer.h"
 #include "Protocol.h"
+#include <map>
+using namespace std;
 CCrashDump Dump;
 
 class ChatServer :public CNetServer
 {
 private:
+	struct Player
+	{
+		UINT64 SessionID;
+		
+		INT64	AccountNo;
+		WCHAR	ID[20];		// null 포함
+		WCHAR	Nickname[20];		// null 포함
+		char	SessionKey[64];
+
+		WCHAR IP[32];
+
+		WORD	MessageLen;
+		WCHAR	*Message;		// MessageLen/2 null 미포함
+
+		int PosX;
+		int PosY;
+
+
+	};
+	
+	map<UINT64, Player *> Playerlist;
+
 	CQueue_LF<Packet *> UpdateQueue;
 public:
 	ChatServer (void)
