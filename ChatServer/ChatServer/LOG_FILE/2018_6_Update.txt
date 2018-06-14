@@ -1,0 +1,3 @@
+
+[00000001] [ Update ] [2018-06-15 07:27:47 / SYSTEM ]  Update Thread_Start
+[00000001] [ Update ] [2018-06-15 07:28:15 / SYSTEM ]  Update Thread_Start

@@ -1,0 +1,94 @@
+#define dfPACKET_CODE		0x77
+#define dfPACKET_KEY1		0x32
+#define dfPACKET_KEY2		0x84
+
+
+ChatDummy_2017xxxx.exe	채팅더미 실행파일
+ChatDummy_Config.ini	채팅더미 설정파일
+ChatList.txt		채팅더미 채팅 메시지 파일 (노래가사)
+ID0.txt ~ ID9.txt	채팅더미 계정 파일 (실행하면 번호를 눌러서 지정 함)
+
+
+
+
+
+1. ChatDummy_Config.ini 파일을 편집하여 더미 수,패턴을 설정 함.
+2. 서버를 켜고 더미를 켠다. 
+	더미 실행 후 0번 ~ 9번가지 번호키를 지정하여 ID 리스트를 선택 함
+	여러개의 더미를 켤 경우 ID 리스트를 모두 다른 것으로 선택 해야 한다.
+
+S 키 - 재접속 및 컨텐츠 송신을 일시 중단 / 해제
+A 키 - 재접속을 중단한다. (ConnectTotal 을 1000단위로 맞춰서 중단)
+T 키 - 공격 패킷을 전송한다.
+
+Disconnect : 연결이 끊어진 클라이언트 수
+Connect / Login : 연결만 한 클라 수 / 로그인까지 성공 수
+
+ConnectTotal : 더미가 지금까지 connect() 호출 한 횟수
+ConnectFail : connect 호출시 실패한 횟수
+DownClient : 서버에서 임의로 끊은 수
+SendQ Full : 더미 클라이언트의 SendQ 가 꽉찬 상태
+ReplyWait : 컨텐츠 패킷을 보내고 응답을 대기중인 클라 수
+
+
+# 확인사항
+
+1. 서버가 클라이언트를 임의로 끊는 상황 체크.
+
+서버가 임의로 접속을 끊는 경우 DownClient 로 카운팅이 되고 있으나
+과도한 부하가 생길 경우 이 감지에 오차가 많이 발생.
+
+그러므로 아래의 방법을 통해서 확실한 확인이 필요함.
+
+
+- 서버에서는 AcceptTotal (서버가 켜진 후 Accept 를 호출한 총 횟수) 가 집계 되어야 함.
+- 각 더미의 ConnectTotal 수치의 모든 합은 서버의 AcceptTotal 과 같아야 함.
+
+예) 
+
+서버 AcceptTotal : 345000
+더미1 ConnectTotal : 300000
+더미2 ConnectTotal :  40000
+더미3 ConnectTotal :   5000
+
+더미의 ConnectTotal 총합과 AcceptTotal 이 같기 때문에 문제가 없음.
+
+이에대한 확인은 장시간 테스트 후 모든 더미에 A 키를 눌러 1000단위로 컨넥션을 중단.
+그리고 더미의 ConnectTotal 합을 구함.
+
+
+이유) 서버의 Accept 처리량 보다 클라이언트의 connect 수치가 과도하게 높을 경우 
+connect 는 성공으로 판단 하였으나 실제로는 서버에 전달이 전혀 되지 않는 문제가 발생함
+(이에대한 정확한 원인은 파악하지 못하였음, syn flooding 공격방어 기능일 가능성이 있음)
+
+그리하여 클라이언트는 connect 를 성공했다고 오인하고 진행하나
+recv,send 시 뒤늦게 연결이 끊어져서 서버가 끊은것으로 잘못 체크됨.
+
+이 경우는 클라이언트는 connect 를 성공 하였음에도, 서버에서는 accept 호출 자체가 이루어 지지 않음.
+
+그러므로 이런 상황을 확인하기 위해서 connect / accept 횟수를 각자 카운팅 하여
+오차가 있는지 확인 하는 것으로 파악 함.
+
+
+더미 : ConnectTotal = connect() 횟수 - DownClient 횟수
+서버 : accept() 횟수.
+
+진짜로 서버가 임의로 끊어버린 경우는 서버와 클라이언트의 connect total 수치가 맞지 않게 됨 accept 횟수가 높게 나옴.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

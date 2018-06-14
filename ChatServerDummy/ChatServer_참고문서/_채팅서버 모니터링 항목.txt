@@ -1,0 +1,18 @@
+채팅서버 모니터링 정보.
+
+SessionNum : 	- NetServer 의 세션수
+PacketPool : 	- Packet 풀 할당량
+
+UpdateMessage_Pool :	- UpdateThread 용 구조체 할당량
+UpdateMessage_Queue : 	- UpdateThread 큐 남은 개수
+
+PlayerData_Pool :	- Player 구조체 할당량
+Player Count : 		- Contents 파트 Player 개수
+
+LoginSessionKey : 	- 아직 미사용
+Accept Total :		- Accept 전체 카운트 (accept 리턴시 +1)
+Accept TPS :		- Accept 처리 횟수
+Update TPS :		- Update 처리 초당 횟수
+
+SessionMiss : 		- 미사용
+SessionNotFound : 	- 미사용

@@ -1,5 +1,6 @@
 #include"stdafx.h"
 #include "NetServer.h"
+#include "ServerConfig.h"
 
 /*======================================================================
 //생성자
@@ -404,44 +405,68 @@ void CNetServer::WorkerThread (void)
 				//패킷 처리.
 				while ( 1 )
 				{
-					short Header;
+					HEADER Header;
+					
 
+					//길이 체크
 					int Size = pSession->RecvQ.GetUseSize ();
-
-					if ( Size < sizeof (Header) )
+					if ( Size < sizeof(HEADER) )
 					{
 						break;
 					}
 
-					pSession->RecvQ.Peek (( char * )&Header, sizeof (Header));
-
-					//헤더가 맞지 않는다. shutdown걸고 빠짐.
-					if ( Header != 8 )
+					pSession->RecvQ.Peek (( char * )&Header.Code, sizeof (Header.Code));
+					if ( Header.Code != _PACKET_CODE )
 					{
-						LOG_LOG (L"Network", LOG_DEBUG, L"SessionID 0x%p, Header %d", pSession->SessionID,Header);
+						LOG_LOG (L"Network", LOG_ERROR, L"SessionID 0x%p, Not Match Code %d", pSession->SessionID, Header.Code);
 						shutdown (pSession->sock, SD_BOTH);
 						break;
 					}
-					
-					//데이터가 전부 오지 않았다.
-					if ( Size < sizeof (Header) + Header )
+					pSession->RecvQ.RemoveData (sizeof (Header.Code));
+
+					pSession->RecvQ.Peek (( char * )&Header.Len, sizeof (Header.Len));
+					if ( Size < Header.Len + 5 )
 					{
 						break;
 					}
+					pSession->RecvQ.RemoveData (sizeof (Header.Len));
+					pSession->RecvQ.Get (( char * )&Header.RandXOR, sizeof (Header.RandXOR));
+					pSession->RecvQ.Get (( char * )&Header.CheckSum, sizeof (Header.CheckSum));
 
-					pSession->RecvQ.RemoveData (sizeof (Header));
+					Size = pSession->RecvQ.GetUseSize ();
 
 					Packet *Pack = Packet::Alloc();
 
-					pSession->RecvQ.Get (Pack->GetBufferPtr(),Header);
 
-					Pack->MoveWritePos (Header);
+					pSession->RecvQ.Get (Pack->GetBufferPtr(), Size);
 
+					Pack->MoveWritePos (Size);
 
-					OnRecv (pSession->SessionID, Pack);
+					//디코드 한 CheckSum 값이 맞지 않는다.
+					if ( Pack->DeCode (&Header) == false )
+					{
+						LOG_LOG (L"Network", LOG_ERROR, L"SessionID 0x%p, Decode Error CheckSum %d", pSession->SessionID);
+						shutdown (pSession->sock, SD_BOTH);
+						break;
+					}
+
+					try
+					{
+						OnRecv (pSession->SessionID, Pack);
+					}
+					catch ( ErrorAlloc Err )
+					{
+						LOG_LOG (L"Network", LOG_ERROR, L"SessionID 0x%p, PacketError");
+						shutdown (pSession->sock, SD_BOTH);
+						break;
+					}
 
 					Packet::Free (Pack);
+					
+
+
 					InterlockedIncrement (( volatile LONG * )&_RecvPacketTPS);
+
 				}
 
 				PostRecv (pSession);
@@ -531,7 +556,8 @@ bool CNetServer::InitializeNetwork (WCHAR *IP, int PORT)
 	retval = bind (_ListenSock, ( SOCKADDR * )&addr, sizeof (addr));
 	if ( retval == SOCKET_ERROR )
 	{
-		LOG_LOG (L"Network", LOG_WARNING, L"bind Failed");
+		int SockErr = WSAGetLastError ();
+		LOG_LOG (L"Network", LOG_WARNING, L"bind Failed %d",SockErr);
 		return false;
 	}
 
