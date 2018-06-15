@@ -426,8 +426,8 @@ bool Packet::EnCode (void)
 	EnCodeFlag = true;
 
 	int DataSize = _iDataSize;
-	char XORCode1 = _XORCode1;
-	char XORCode2 = _XORCode2;
+	unsigned char XORCode1 = _XORCode1;
+	unsigned char XORCode2 = _XORCode2;
 
 	HEADER Buff;
 

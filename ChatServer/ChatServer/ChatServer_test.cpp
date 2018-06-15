@@ -7,14 +7,28 @@
 #include "ServerConfig.h"
 #include <map>
 #include <list>
+
 using namespace std;
 CCrashDump Dump;
+
 #define df_Sector_X 50
 #define df_Sector_Y 50
+#define LEAVE 9999
 
 
 class ChatServer :public CNetServer
 {
+public :
+	struct QueuePack
+	{
+		UINT64 SessionID;
+		WORD Type;
+		Packet *packet;
+		WCHAR IP[32];
+	};
+
+	CQueue_LF<QueuePack *> UpdateQueue;
+	CMemoryPool<QueuePack> *QueuePool;
 private:
 	struct Player
 	{
@@ -32,15 +46,11 @@ private:
 
 		int PosX;
 		int PosY;
+
+		DWORD Last_Message_Time;
 	};
 	
-	struct QueuePack
-	{
-		UINT64 SessionID;
-		WORD Type;
-		Packet *packet;
-		WCHAR IP[32];
-	};
+
 
 	//플레이어 리스트
 	map<UINT64, Player *> Playerlist;
@@ -48,8 +58,6 @@ private:
 	//케릭터 섹터
 	list<Player *> g_Sector[df_Sector_X][df_Sector_Y];
 
-	CQueue_LF<QueuePack *> UpdateQueue;
-	CMemoryPool<QueuePack> *QueuePool;
 	HANDLE Thread;
 	HANDLE WakeUp;
 
@@ -81,13 +89,6 @@ public:
 		}
 		SetEvent (WakeUp);
 		
-
-		/*
-		Packet *Pack = Packet::Alloc ();
-		SendPacket (SessionID, Pack);
-
-		Packet::Free (Pack);
-		*/
 		return;
 	}
 	virtual void OnSend (UINT64 SessionID, INT SendByte)
@@ -104,7 +105,7 @@ public:
 
 		if ( UpdateQueue.Enqueue (pack) == false )
 		{
-			LOG_LOG (L"ChatServer", LOG_ERROR, L"UPDATE QUEUE OverFlow");
+			LOG_LOG (L"Update", LOG_ERROR, L"UPDATE QUEUE OverFlow");
 			Stop ();
 		}
 
@@ -113,6 +114,9 @@ public:
 	}
 	virtual void OnClientLeave (UINT64 SessionID)
 	{
+		QueuePack *pack = QueuePool->Alloc ();
+		pack->Type = LEAVE;
+		pack->SessionID = SessionID;
 		return;
 	}
 
@@ -132,7 +136,7 @@ public:
 		p->Update ();
 
 		wprintf (L"\nUpdate_Thread_End\n");
-		LOG_LOG (L"Network", LOG_SYSTEM, L"Update Thread_End");
+		LOG_LOG (L"Update", LOG_SYSTEM, L"Update Thread_End");
 		return 0;
 	}
 
@@ -142,14 +146,15 @@ public:
 		while ( 1 )
 		{
 			WaitForSingleObject (&WakeUp, INFINITE);
-
+			Packet *pPacket = NULL;
 			while ( 1 )
 			{
 				if ( UpdateQueue.Dequeue (&Pack) == false )
 				{
 					break;
 				}
-
+				
+				pPacket = NULL;
 				try
 				{
 					switch ( Pack->Type )
@@ -159,20 +164,21 @@ public:
 						break;
 
 					case en_PACKET_CS_CHAT_REQ_LOGIN:
-						PACKET_CS_CHAT_SERVER (Pack);
+						pPacket = PACKET_CS_CHAT_SERVER (Pack);
 						break;
 
 					case en_PACKET_CS_CHAT_REQ_SECTOR_MOVE:
+						pPacket = PACKET_CS_CHAT_REQ_SECTOR_MOVE (Pack);
 						break;
 					case en_PACKET_CS_CHAT_REQ_MESSAGE:
 						break;
 					case en_PACKET_CS_CHAT_REQ_HEARTBEAT:
 						break;
+					case LEAVE:
+						break;
 					default:
 						LOG_LOG (L"Update", LOG_ERROR, L"SessionID 0x%p, Type Error");
-
 						Disconnect (Pack->SessionID);
-						QueuePool->Free (Pack);
 						break;
 					}
 				}
@@ -183,12 +189,18 @@ public:
 					QueuePool->Free (Pack);
 					break;
 				}
+				if ( pPacket != NULL )
+				{
+					SendPacket (Pack->SessionID, pPacket);
+					Packet::Free (pPacket);
+				}
+
 				QueuePool->Free (Pack);
 			}
 		}
 	}
 
-	Player *FindCharacter (UINT64 SessionID)
+	Player *FindPlayer (UINT64 SessionID)
 	{
 		map<UINT64, Player *>::iterator iter;
 
@@ -202,18 +214,19 @@ public:
 		return iter->second;
 	}
 
-	void PACKET_CS_CHAT_SERVER (QueuePack *Pack)
+	Packet *PACKET_CS_CHAT_SERVER (QueuePack *Pack)
 	{
 		Player *pNewPlayer = new Player;
 		lstrcpyW (pNewPlayer->IP, Pack->IP);
 		pNewPlayer->PosX = -1;
 		pNewPlayer->PosY = -1;
-
+		pNewPlayer->Last_Message_Time = GetTickCount ();
 		Playerlist.insert (pair<UINT64, Player *> (pNewPlayer->SessionID, pNewPlayer));
-		return;
+		
+		return NULL;
 	}
 
-	bool PACKET_CS_CHAT_REQ_LOGIN (QueuePack *Pack)
+	Packet * PACKET_CS_CHAT_REQ_LOGIN (QueuePack *Pack)
 	{
 		UINT64 SessionID = Pack->SessionID;
 
@@ -229,10 +242,10 @@ public:
 		pPacket->GetData (SessionKey, sizeof (SessionKey));
 		
 
-		Player *pPlayer = FindCharacter (Pack->SessionID);
+		Player *pPlayer = FindPlayer (Pack->SessionID);
 		if ( pPlayer == NULL )
 		{
-			return false;
+			return NULL;
 		}
 
 		lstrcpyW (pPlayer->ID, ID);
@@ -240,6 +253,7 @@ public:
 		memcpy(pPlayer->SessionKey, SessionKey,sizeof(SessionKey));
 		pPlayer->AccountNo = AccountNo;
 		pPlayer->SessionID = SessionID;
+		pPlayer->Last_Message_Time = GetTickCount ();
 
 		Packet::Free (pPacket);
 
@@ -249,21 +263,122 @@ public:
 		WORD	Type = en_PACKET_CS_CHAT_RES_LOGIN;
 
 		BYTE	Status = 1;				// 0:실패	1:성공
-		INT64	AccountNo = AccountNo;
 
-		Packet *sPack = Packet::Alloc ();
-		*sPack << Type;
-		*sPack << Status;
-		*sPack << AccountNo;
+		Packet *ResPack = Packet::Alloc ();
+		*ResPack << Type;
+		*ResPack << Status;
+		*ResPack << AccountNo;
 
-		SendPacket (SessionID, sPack);
-		Packet::Free (sPack);
-
-		return true;
+		return ResPack;
 	}
 
+	Packet *PACKET_CS_CHAT_REQ_SECTOR_MOVE (QueuePack *Pack)
+	{
+		Packet *pPacket = Pack->packet;
+		UINT64 SessionID = Pack->SessionID;
+		Player *pPlayer = FindPlayer (SessionID);
+		if ( pPlayer == NULL )
+		{
+			return NULL;
+		}
+
+		pPlayer->Last_Message_Time = GetTickCount ();
 
 
+		if ( pPlayer->PosX != -1 && pPlayer->PosY != -1 )
+		{
+			list < Player *> &SectorList = g_Sector[pPlayer->PosY][pPlayer->PosY];
+
+			list<Player *>::iterator iter;
+			for ( iter = SectorList.begin (); iter != SectorList.end ();)
+			{
+				if ( pPlayer == (*iter) )
+				{
+					SectorList.erase (iter);
+					break;
+				}
+				iter++;
+			}
+		}
+
+		INT64 AccountNo;
+		WORD SectorX;
+		WORD SectorY;
+
+		*pPacket >> AccountNo;
+		*pPacket >> SectorX;
+		*pPacket >> SectorY;
+
+
+		g_Sector[SectorY][SectorX].push_back (pPlayer);
+		pPlayer->PosX = SectorX;
+		pPlayer->PosY = SectorY;
+
+
+		// 채팅서버 섹터 이동 결과
+		//
+		//	{
+		//		WORD	Type
+		//
+		//		INT64	AccountNo
+		//		WORD	SectorX
+		//		WORD	SectorY
+		//	}
+		//
+
+		WORD	Type = en_PACKET_CS_CHAT_RES_SECTOR_MOVE;
+
+		Packet *ResPack = Packet::Alloc ();
+		*ResPack << Type;
+		*ResPack << AccountNo;
+		*ResPack << SectorX;
+		*ResPack << SectorY;
+
+		return ResPack;
+	}
+
+	Packet * PACKET_CS_CHAT_REQ_MESSAGE (QueuePack *Pack)
+	{
+		Packet *pPacket = Pack->packet;
+		UINT64 SessionID = Pack->SessionID;
+		Player *pPlayer = FindPlayer (SessionID);
+		if ( pPlayer == NULL )
+		{
+			return NULL;
+		}
+
+		pPlayer->Last_Message_Time = GetTickCount ();
+
+
+		// 채팅서버 채팅보내기 요청
+		//
+		//	{
+		//		WORD	Type
+		//
+		//		INT64	AccountNo
+		//		WORD	MessageLen
+		//		WCHAR	Message[MessageLen / 2]		// null 미포함
+		//	}
+		INT64	AccountNo;
+		WORD	MessageLen;
+		WCHAR	*Message;//Message[MessageLen / 2] null 미포함
+		*pPacket >> AccountNo;
+		*pPacket >> MessageLen;
+
+		Message = new WCHAR[MessageLen / 2];
+		pPacket->GetData (( char* )Message, MessageLen / 2);
+
+		//현재섹터 검색.
+		//돌면서 플레이어 객체 얻어서 SendPacket 할것.
+		//끝.
+
+		return NULL;
+	}
+
+	Packet * PACKET_CS_CHAT_REQ_HEARTBEAT (QueuePack *Pack)
+	{
+
+	}
 };
 
 ChatServer Chat;

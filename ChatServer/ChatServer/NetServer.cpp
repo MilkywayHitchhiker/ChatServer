@@ -143,9 +143,7 @@ void CNetServer::SendPacket (UINT64 SessionID, Packet *pack)
 		return;
 	}
 
-	short Header = sizeof (INT64);
-
-	pack->PutHeader (( char * )&Header, sizeof (Header));
+	pack->EnCode ();
 
 	//Send버퍼 초과로 해당 세션을 강제로 끊어줘야 된다.
 	pack->Add ();
