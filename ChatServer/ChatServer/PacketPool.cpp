@@ -417,6 +417,8 @@ int	Packet::PutHeader (char *chpSrc, int iSrcSize)
 //===============================================================================================
 bool Packet::EnCode (void)
 {
+	char *ReadPosBuff;
+	
 	AcquireLOCK ();
 	if ( EnCodeFlag )
 	{
@@ -429,61 +431,55 @@ bool Packet::EnCode (void)
 	unsigned char XORCode1 = _XORCode1;
 	unsigned char XORCode2 = _XORCode2;
 
-	HEADER Buff;
+	HEADER Header;
 
-	if ( _iDataSize == 0 )
-	{
-		return false;
-	}
-
-	Buff.Code = _PacketCode;
-	Buff.Len = DataSize;
+	Header.Code = _PACKET_CODE;
+	Header.Len = DataSize;
 
 	//1. Rand XOR Code 는 보내는 이가 랜덤하게 1byte 코드를 생성
-	Buff.RandXOR = rand () % 255;
-
-	int Checksum = 0;
+	Header.RandXOR = rand () % 255;
 
 	//2. CheckSum Payload 부분을 1byte 씩 모두 더해서 % 256 한 unsigned char 값
+	ReadPosBuff = ReadPos;
+	int CheckSum = 0;
 	for ( int Cnt = 0; Cnt < DataSize; Cnt++ )
 	{
-		Checksum += DataFieldStart[Cnt];
+		CheckSum += ReadPosBuff[Cnt];
 	}
-	Buff.CheckSum = Checksum % 256;
+	Header.CheckSum = CheckSum % 256;
 
 	//3. Rand XOR Code로 ChecSum, Payload 바이트 단위 xor
-	Buff.CheckSum = Buff.CheckSum ^ Buff.RandXOR;
+	ReadPosBuff = ReadPos;
+	Header.CheckSum = Header.CheckSum ^ Header.RandXOR;
 	for ( int Cnt = 0; Cnt < DataSize; Cnt++ )
 	{
-		DataFieldStart[Cnt] = DataFieldStart[Cnt] ^ Buff.RandXOR;
+		ReadPosBuff[Cnt] = ReadPosBuff[Cnt] ^ Header.RandXOR;
 	}
 
 	//4. 고정 XOR Code 1 로[Rand XOR Code, CheckSum, Payload] 를 XOR
-	Buff.RandXOR = Buff.RandXOR ^ XORCode1;
-	Buff.CheckSum = Buff.CheckSum ^ XORCode1;
+	ReadPosBuff = ReadPos;
+	Header.RandXOR = Header.RandXOR ^ XORCode1;
+	Header.CheckSum = Header.CheckSum ^ XORCode1;
 	for ( int Cnt = 0; Cnt < DataSize; Cnt++ )
 	{
-		DataFieldStart[Cnt] = DataFieldStart[Cnt] ^ XORCode1;
+		ReadPosBuff[Cnt] = ReadPosBuff[Cnt] ^ XORCode1;
 	}
 
 	//5. 고정 XOR Code 2 로[Rand XOR Code, CheckSum, Payload] 를 XOR
-	Buff.RandXOR = Buff.RandXOR ^ XORCode2;
-	Buff.CheckSum = Buff.CheckSum ^ XORCode2;
+	ReadPosBuff = ReadPos;
+	Header.RandXOR = Header.RandXOR ^ XORCode2;
+	Header.CheckSum = Header.CheckSum ^ XORCode2;
 	for ( int Cnt = 0; Cnt < DataSize; Cnt++ )
 	{
-		DataFieldStart[Cnt] = DataFieldStart[Cnt] ^ XORCode2;
+		ReadPosBuff[Cnt] = ReadPosBuff[Cnt] ^ XORCode2;
 	}
 
-
 	//지역변수 Buff의 Data를 HeaderPos로 옮김.
-	HEADER *pHeader = ( HEADER * )(HeaderStartPos - HEADERSIZE_DEFAULT);
-	HeaderStartPos = ( char * )pHeader;
-	HeaderSize = HEADERSIZE_DEFAULT;
+	PutHeader ((char *)&Header.CheckSum, 1);
+	PutHeader (( char * )&Header.RandXOR, 1);
+	PutHeader (( char * )&Header.Len, 2);
+	PutHeader (( char * )&Header.Code, 1);
 
-	pHeader->CheckSum = Buff.CheckSum;
-	pHeader->RandXOR = Buff.RandXOR;
-	pHeader->Code = Buff.Code;
-	pHeader->Len = Buff.Len;
 
 	ReleaseLOCK ();
 

@@ -7,7 +7,7 @@ struct HEADER
 {
 	char Code;
 	short Len;
-	char RandXOR;
+	unsigned char RandXOR;
 	unsigned char CheckSum;
 };
 

@@ -56,7 +56,7 @@ private:
 	map<UINT64, Player *> Playerlist;
 
 	//케릭터 섹터
-	list<Player *> g_Sector[df_Sector_X][df_Sector_Y];
+	list<Player *> g_Sector[df_Sector_Y][df_Sector_X];
 
 	HANDLE Thread;
 	HANDLE WakeUp;
@@ -64,14 +64,22 @@ private:
 public:
 	ChatServer (void)
 	{
-		QueuePool = new CMemoryPool<QueuePack> (0);
-		Thread = ( HANDLE )_beginthreadex (NULL, 0, UpdateThread, (void *)this, NULL, NULL);
-		WakeUp = CreateEvent (NULL, FALSE, TRUE, NULL);
 	}
 	~ChatServer (void)
 	{
+		/*
 		delete QueuePool;
-		Stop ();
+		*/
+	}
+	virtual void OnStart (void)
+	{
+		QueuePool = new CMemoryPool<QueuePack> (0);
+
+		WakeUp = CreateEvent (NULL, FALSE, FALSE, NULL);
+
+		Thread = ( HANDLE )_beginthreadex (NULL, 0, UpdateThread, (void *)this, NULL, NULL);
+
+		return;
 	}
 
 	virtual void OnRecv (UINT64 SessionID, Packet *p)
@@ -117,6 +125,8 @@ public:
 		QueuePack *pack = QueuePool->Alloc ();
 		pack->Type = LEAVE;
 		pack->SessionID = SessionID;
+
+		SetEvent (WakeUp);
 		return;
 	}
 
@@ -145,18 +155,19 @@ public:
 		QueuePack *Pack;
 		while ( 1 )
 		{
-			WaitForSingleObject (&WakeUp, INFINITE);
+			WaitForSingleObject (WakeUp, INFINITE);
 			Packet *pPacket = NULL;
 			while ( 1 )
 			{
+				Pack = NULL;
+
 				if ( UpdateQueue.Dequeue (&Pack) == false )
 				{
 					break;
 				}
-				
-				pPacket = NULL;
 				try
 				{
+					pPacket = NULL;
 					switch ( Pack->Type )
 					{
 					case en_PACKET_CS_CHAT_SERVER:
@@ -164,15 +175,17 @@ public:
 						break;
 
 					case en_PACKET_CS_CHAT_REQ_LOGIN:
-						pPacket = PACKET_CS_CHAT_SERVER (Pack);
+						pPacket = PACKET_CS_CHAT_REQ_LOGIN (Pack);
 						break;
 
 					case en_PACKET_CS_CHAT_REQ_SECTOR_MOVE:
 						pPacket = PACKET_CS_CHAT_REQ_SECTOR_MOVE (Pack);
 						break;
 					case en_PACKET_CS_CHAT_REQ_MESSAGE:
+						pPacket = PACKET_CS_CHAT_REQ_MESSAGE (Pack);
 						break;
 					case en_PACKET_CS_CHAT_REQ_HEARTBEAT:
+						PACKET_CS_CHAT_REQ_HEARTBEAT ();
 						break;
 					case LEAVE:
 						break;
@@ -221,6 +234,8 @@ public:
 		pNewPlayer->PosX = -1;
 		pNewPlayer->PosY = -1;
 		pNewPlayer->Last_Message_Time = GetTickCount ();
+		pNewPlayer->SessionID = Pack->SessionID;
+
 		Playerlist.insert (pair<UINT64, Player *> (pNewPlayer->SessionID, pNewPlayer));
 		
 		return NULL;
@@ -287,7 +302,7 @@ public:
 
 		if ( pPlayer->PosX != -1 && pPlayer->PosY != -1 )
 		{
-			list < Player *> &SectorList = g_Sector[pPlayer->PosY][pPlayer->PosY];
+			list < Player *> &SectorList = g_Sector[pPlayer->PosY][pPlayer->PosX];
 
 			list<Player *>::iterator iter;
 			for ( iter = SectorList.begin (); iter != SectorList.end ();)
@@ -314,17 +329,6 @@ public:
 		pPlayer->PosX = SectorX;
 		pPlayer->PosY = SectorY;
 
-
-		// 채팅서버 섹터 이동 결과
-		//
-		//	{
-		//		WORD	Type
-		//
-		//		INT64	AccountNo
-		//		WORD	SectorX
-		//		WORD	SectorY
-		//	}
-		//
 
 		WORD	Type = en_PACKET_CS_CHAT_RES_SECTOR_MOVE;
 
@@ -365,19 +369,95 @@ public:
 		*pPacket >> AccountNo;
 		*pPacket >> MessageLen;
 
-		Message = new WCHAR[MessageLen / 2];
-		pPacket->GetData (( char* )Message, MessageLen / 2);
+		Message = new WCHAR[MessageLen];
+		memset (Message, 0, sizeof (MessageLen));
+		pPacket->GetData (( char* )Message, MessageLen);
+		Packet::Free (pPacket);
 
+
+		//------------------------------------------------------------
+		// 채팅서버 채팅보내기 응답  (다른 클라가 보낸 채팅도 이걸로 받음)
+		//
+		//	{
+		//		WORD	Type
+		//
+		//		INT64	AccountNo
+		//		WCHAR	ID[20]						// null 포함
+		//		WCHAR	Nickname[20]				// null 포함
+		//		
+		//		WORD	MessageLen
+		//		WCHAR	Message[MessageLen / 2]		// null 미포함
+		//	}
+		//
+		//------------------------------------------------------------
+		WORD Type = en_PACKET_CS_CHAT_RES_MESSAGE;
+		Packet *NewPacket = Packet::Alloc ();
+		*NewPacket << Type;
+		*NewPacket << AccountNo;
+		NewPacket->PutData ((char *)pPlayer->ID, sizeof (pPlayer->ID));
+		NewPacket->PutData (( char * )pPlayer->Nickname, sizeof (pPlayer->Nickname));
+		*NewPacket << MessageLen;
+		NewPacket->PutData (( char * )Message, MessageLen);
+
+		delete Message;
+
+
+		Player *pUser = NULL;
 		//현재섹터 검색.
-		//돌면서 플레이어 객체 얻어서 SendPacket 할것.
+		if ( pPlayer->PosX != -1 && pPlayer->PosY != -1 )
+		{
+			list < Player *> &SectorList = g_Sector[pPlayer->PosY][pPlayer->PosX];
+
+			//돌면서 플레이어 객체 얻어서 SendPacket 할것.
+			list<Player *>::iterator iter;
+			for ( iter = SectorList.begin (); iter != SectorList.end ();)
+			{
+				if ( pPlayer == (*iter) )
+				{
+					pUser = *iter;
+					SendPacket (pUser->SessionID, NewPacket);
+				}
+				else
+				{
+					pUser = *iter;
+					SendPacket (pUser->SessionID, NewPacket);
+				}
+				iter++;
+			}
+		}
+
+		Packet::Free (NewPacket);
 		//끝.
 
 		return NULL;
 	}
 
-	Packet * PACKET_CS_CHAT_REQ_HEARTBEAT (QueuePack *Pack)
+	Packet * PACKET_CS_CHAT_REQ_HEARTBEAT ()
 	{
+		Player *pUser;
+		DWORD CurrentTime = GetTickCount ();
 
+		//모든 섹터를 돌면서 Heaetbeat체크
+		for ( int CntY = 0; CntY < df_Sector_Y; CntY++ )
+		{
+			for ( int CntX = 0; CntX < df_Sector_X; CntX++ )
+			{
+				list < Player *> &SectorList = g_Sector[CntY][CntX];
+				list<Player *>::iterator iter;
+				for ( iter = SectorList.begin (); iter != SectorList.end ();)
+				{
+					pUser = *iter;
+
+					//Limit타임이 넘어갔을 경우 Disconnect요청을 보냄. 플레이어리스트와 섹터에서 빼는 작업은 OnClientLeave가 떨어지면 그때 작업함.
+					if ( CurrentTime - pUser->Last_Message_Time > 4000 )
+					{
+						Disconnect (pUser->SessionID);
+					}
+					iter++;
+				}
+			}
+		}
+		return NULL;
 	}
 };
 

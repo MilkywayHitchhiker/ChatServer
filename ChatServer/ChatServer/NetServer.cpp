@@ -77,6 +77,9 @@ bool CNetServer::Start (WCHAR * ServerIP, int PORT, int Session_Max, int WorkerT
 
 	LOG_LOG (L"Network", LOG_SYSTEM, L" NetworkStart IP = %s, PORT = %d, SessionMax = %d, WorkerThreadNum = %d", ServerIP, PORT, Session_Max, WorkerThread_Num);
 	bServerOn = true;
+
+	OnStart ();
+
 	return true;
 }
 
