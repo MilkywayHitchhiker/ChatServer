@@ -59,29 +59,30 @@ private:
 	list<Player *> g_Sector[df_Sector_Y][df_Sector_X];
 
 	HANDLE Thread;
-	HANDLE WakeUp;
-
+	//HANDLE WakeUp;
+	UINT _UpdateTPS;
+	
 public:
 	ChatServer (void)
 	{
 	}
 	~ChatServer (void)
 	{
-		/*
-		delete QueuePool;
-		*/
 	}
 	virtual void OnStart (void)
 	{
 		QueuePool = new CMemoryPool<QueuePack> (0);
-
-		WakeUp = CreateEvent (NULL, FALSE, FALSE, NULL);
+		//WakeUp = CreateEvent (NULL, FALSE, FALSE, NULL);
 
 		Thread = ( HANDLE )_beginthreadex (NULL, 0, UpdateThread, (void *)this, NULL, NULL);
 
 		return;
 	}
-
+	virtual void OnStop (void)
+	{
+		delete QueuePool;
+		return;
+	}
 	virtual void OnRecv (UINT64 SessionID, Packet *p)
 	{
 		QueuePack *pack = QueuePool->Alloc();
@@ -95,7 +96,7 @@ public:
 			LOG_LOG (L"ChatServer", LOG_ERROR, L"UPDATE QUEUE OverFlow");
 			Stop ();
 		}
-		SetEvent (WakeUp);
+		//SetEvent (WakeUp);
 		
 		return;
 	}
@@ -117,7 +118,7 @@ public:
 			Stop ();
 		}
 
-		SetEvent (WakeUp);
+	//	SetEvent (WakeUp);
 		return true;
 	}
 	virtual void OnClientLeave (UINT64 SessionID)
@@ -126,7 +127,7 @@ public:
 		pack->Type = LEAVE;
 		pack->SessionID = SessionID;
 
-		SetEvent (WakeUp);
+	//	SetEvent (WakeUp);
 		return;
 	}
 
@@ -152,21 +153,25 @@ public:
 
 	int  Update (void)
 	{
+
+		Packet *pPacket;
 		QueuePack *Pack;
-		while ( 1 )
+	//while ( 1 )
 		{
-			WaitForSingleObject (WakeUp, INFINITE);
-			Packet *pPacket = NULL;
+		//	WaitForSingleObject (WakeUp, INFINITE);
+
+			Pack = NULL;
 			while ( 1 )
 			{
-				Pack = NULL;
 
 				if ( UpdateQueue.Dequeue (&Pack) == false )
 				{
-					break;
+					//break;
+					continue;
 				}
 				try
 				{
+					
 					pPacket = NULL;
 					switch ( Pack->Type )
 					{
@@ -182,12 +187,13 @@ public:
 						pPacket = PACKET_CS_CHAT_REQ_SECTOR_MOVE (Pack);
 						break;
 					case en_PACKET_CS_CHAT_REQ_MESSAGE:
-						pPacket = PACKET_CS_CHAT_REQ_MESSAGE (Pack);
+						PACKET_CS_CHAT_REQ_MESSAGE (Pack);
 						break;
 					case en_PACKET_CS_CHAT_REQ_HEARTBEAT:
 						PACKET_CS_CHAT_REQ_HEARTBEAT ();
 						break;
 					case LEAVE:
+						PACKET_LEAVE (Pack);
 						break;
 					default:
 						LOG_LOG (L"Update", LOG_ERROR, L"SessionID 0x%p, Type Error");
@@ -199,7 +205,6 @@ public:
 				{
 					LOG_LOG (L"Update", LOG_ERROR, L"SessionID 0x%p, PacketError");
 					Disconnect (Pack->SessionID);
-					QueuePool->Free (Pack);
 					break;
 				}
 				if ( pPacket != NULL )
@@ -211,6 +216,7 @@ public:
 				QueuePool->Free (Pack);
 			}
 		}
+		return 0;
 	}
 
 	Player *FindPlayer (UINT64 SessionID)
@@ -227,7 +233,7 @@ public:
 		return iter->second;
 	}
 
-	Packet *PACKET_CS_CHAT_SERVER (QueuePack *Pack)
+	void PACKET_CS_CHAT_SERVER (QueuePack *Pack)
 	{
 		Player *pNewPlayer = new Player;
 		lstrcpyW (pNewPlayer->IP, Pack->IP);
@@ -238,7 +244,7 @@ public:
 
 		Playerlist.insert (pair<UINT64, Player *> (pNewPlayer->SessionID, pNewPlayer));
 		
-		return NULL;
+		return;
 	}
 
 	Packet * PACKET_CS_CHAT_REQ_LOGIN (QueuePack *Pack)
@@ -341,14 +347,14 @@ public:
 		return ResPack;
 	}
 
-	Packet * PACKET_CS_CHAT_REQ_MESSAGE (QueuePack *Pack)
+	void PACKET_CS_CHAT_REQ_MESSAGE (QueuePack *Pack)
 	{
 		Packet *pPacket = Pack->packet;
 		UINT64 SessionID = Pack->SessionID;
 		Player *pPlayer = FindPlayer (SessionID);
 		if ( pPlayer == NULL )
 		{
-			return NULL;
+			return;
 		}
 
 		pPlayer->Last_Message_Time = GetTickCount ();
@@ -361,11 +367,11 @@ public:
 		//
 		//		INT64	AccountNo
 		//		WORD	MessageLen
-		//		WCHAR	Message[MessageLen / 2]		// null 미포함
+		//		WCHAR	Message[MessageLen]		// null 미포함
 		//	}
 		INT64	AccountNo;
 		WORD	MessageLen;
-		WCHAR	*Message;//Message[MessageLen / 2] null 미포함
+		WCHAR	*Message;//Message[MessageLen] null 미포함
 		*pPacket >> AccountNo;
 		*pPacket >> MessageLen;
 
@@ -386,7 +392,7 @@ public:
 		//		WCHAR	Nickname[20]				// null 포함
 		//		
 		//		WORD	MessageLen
-		//		WCHAR	Message[MessageLen / 2]		// null 미포함
+		//		WCHAR	Message[MessageLen]		// null 미포함
 		//	}
 		//
 		//------------------------------------------------------------
@@ -412,56 +418,87 @@ public:
 			list<Player *>::iterator iter;
 			for ( iter = SectorList.begin (); iter != SectorList.end ();)
 			{
-				if ( pPlayer == (*iter) )
-				{
-					pUser = *iter;
-					SendPacket (pUser->SessionID, NewPacket);
-				}
-				else
-				{
-					pUser = *iter;
-					SendPacket (pUser->SessionID, NewPacket);
-				}
+				pUser = *iter;
+				SendPacket (pUser->SessionID, NewPacket);
+
 				iter++;
 			}
 		}
 
 		Packet::Free (NewPacket);
-		//끝.
 
-		return NULL;
+		return;
 	}
 
-	Packet * PACKET_CS_CHAT_REQ_HEARTBEAT ()
+	void PACKET_CS_CHAT_REQ_HEARTBEAT ()
 	{
 		Player *pUser;
 		DWORD CurrentTime = GetTickCount ();
 
-		//모든 섹터를 돌면서 Heaetbeat체크
-		for ( int CntY = 0; CntY < df_Sector_Y; CntY++ )
+		map<UINT64, Player *>::iterator iter;
+		for ( iter = Playerlist.begin (); iter != Playerlist.end ();)
 		{
-			for ( int CntX = 0; CntX < df_Sector_X; CntX++ )
+			pUser = iter->second;
+			if ( CurrentTime - pUser->Last_Message_Time > 40000 )
 			{
-				list < Player *> &SectorList = g_Sector[CntY][CntX];
-				list<Player *>::iterator iter;
-				for ( iter = SectorList.begin (); iter != SectorList.end ();)
-				{
-					pUser = *iter;
-
-					//Limit타임이 넘어갔을 경우 Disconnect요청을 보냄. 플레이어리스트와 섹터에서 빼는 작업은 OnClientLeave가 떨어지면 그때 작업함.
-					if ( CurrentTime - pUser->Last_Message_Time > 4000 )
-					{
-						Disconnect (pUser->SessionID);
-					}
-					iter++;
-				}
+				Disconnect (pUser->SessionID);
 			}
+			iter++;
 		}
-		return NULL;
+
+
+		return;
+	}
+
+	void PACKET_LEAVE (QueuePack *Pack)
+	{
+		Packet *pPacket = Pack->packet;
+		UINT64 SessionID = Pack->SessionID;
+		Player *pPlayer = FindPlayer (SessionID);
+		if ( pPlayer == NULL )
+		{
+			return;
+		}
+
+		list < Player *> &SectorList = g_Sector[pPlayer->PosY][pPlayer->PosX];
+		list<Player *>::iterator iter;
+		for ( iter = SectorList.begin (); iter != SectorList.end ();)
+		{
+			if ( *iter == pPlayer )
+			{
+				SectorList.erase (iter);
+				break;
+			}
+			iter++;
+		}
+
+		Playerlist.erase (SessionID);
+		delete pPlayer;
+		return;
+	}
+
+
+
+
+
+	UINT UpdateTPS (bool Reset)
+	{
+		UINT UpdateTPS = _UpdateTPS;
+		if ( Reset )
+		{
+			InterlockedExchange (( volatile LONG * )&_UpdateTPS, 0);
+		}
+		return UpdateTPS;
 	}
 };
 
 ChatServer Chat;
+
+
+
+
+
+
 
 
 
@@ -479,6 +516,7 @@ int main ()
 
 	UINT AcceptTotal = 0;
 	UINT AcceptTPS = 0;
+	UINT UpdateTPS = 0;
 	UINT RecvTPS = 0;
 	UINT SendTPS = 0;
 	UINT ConnectSessionCnt = 0;
@@ -486,6 +524,7 @@ int main ()
 	int MemoryPoolUse = 0;
 
 	DWORD StartTime = GetTickCount ();
+	DWORD HeartBeatTime = StartTime;
 	DWORD EndTime;
 	while ( 1 )
 	{
@@ -498,6 +537,7 @@ int main ()
 			wprintf (L"AcceptTPS = %d \n", AcceptTPS);
 			wprintf (L"Sec RecvTPS = %d \n", RecvTPS);
 			wprintf (L"Sec SendTPS = %d \n", SendTPS);
+			wprintf (L"UpdateTPS = %d \n\n", UpdateTPS);
 			wprintf (L"MemoryPoolFull Cnt = %d\n", MemoryPoolCnt);
 			wprintf (L"MemoryPoolUse Cnt = %d \n", MemoryPoolUse);
 
@@ -505,6 +545,7 @@ int main ()
 
 			AcceptTotal = Chat.AcceptTotal ();
 			AcceptTPS = Chat.AcceptTPS (true);
+			UpdateTPS = Chat.UpdateTPS (true);
 			RecvTPS = Chat.RecvTPS (true);
 			SendTPS = Chat.SendTPS (true);
 			ConnectSessionCnt = Chat.Use_SessionCnt ();
@@ -514,6 +555,17 @@ int main ()
 			StartTime = EndTime;
 		}
 
+
+		if ( EndTime - StartTime >= 150000 )
+		{
+			ChatServer::QueuePack *pack = Chat.QueuePool->Alloc ();
+			pack->Type = en_PACKET_CS_CHAT_REQ_HEARTBEAT;
+			if ( Chat.UpdateQueue.Enqueue (pack) == false )
+			{
+				LOG_LOG (L"ChatServer", LOG_ERROR, L"UPDATE QUEUE OverFlow");
+				Chat.Stop ();
+			}
+		}
 
 		if ( GetAsyncKeyState ('E') & 0x8001 )
 		{

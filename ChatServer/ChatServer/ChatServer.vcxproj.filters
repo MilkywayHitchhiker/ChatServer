@@ -25,11 +25,11 @@
     <ClCompile Include="lib\System_Log.cpp">
       <Filter>소스 파일\lib</Filter>
     </ClCompile>
-    <ClCompile Include="Parser.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="ServerConfig.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser.cpp">
+      <Filter>소스 파일\Config</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -72,11 +72,11 @@
     <ClInclude Include="targetver.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Parser.h">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
     <ClInclude Include="ServerConfig.h">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser.h">
+      <Filter>소스 파일\Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +92,9 @@
     <Filter Include="소스 파일\lib">
       <UniqueIdentifier>{9222ff6f-d2cd-4e0d-be43-fff8d72052ae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Config">
+      <UniqueIdentifier>{2b0c6a26-c92c-43e7-a4eb-e4d70db8e704}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt">
@@ -100,7 +103,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\ChatServerDummy\_ChatServer.cnf">
-      <Filter>헤더 파일</Filter>
+      <Filter>소스 파일\Config</Filter>
     </None>
   </ItemGroup>
 </Project>
