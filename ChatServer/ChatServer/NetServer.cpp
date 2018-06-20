@@ -39,8 +39,7 @@ bool CNetServer::Start (WCHAR * ServerIP, int PORT, int Session_Max, int WorkerT
 		return false;
 	}
 
-	LOG_DIRECTORY (L"LOG_FILE");
-	LOG_LEVEL (LOG_SYSTEM, false);
+
 	wprintf (L"\n NetworkModule Start \n");
 
 	//소켓 초기화 및 Listen작업.
@@ -449,8 +448,9 @@ void CNetServer::WorkerThread (void)
 					//디코드 한 CheckSum 값이 맞지 않는다.
 					if ( Pack->DeCode (&Header) == false )
 					{
-						LOG_LOG (L"Network", LOG_ERROR, L"SessionID 0x%p, Decode Error CheckSum %d", pSession->SessionID);
+						LOG_LOG (L"Network", LOG_ERROR, L"SessionID 0x%p, Decode Error CheckSum", pSession->SessionID);
 						shutdown (pSession->sock, SD_BOTH);
+						Packet::Free (Pack);
 						break;
 					}
 
@@ -462,6 +462,7 @@ void CNetServer::WorkerThread (void)
 					{
 						LOG_LOG (L"Network", LOG_ERROR, L"SessionID 0x%p, PacketError");
 						shutdown (pSession->sock, SD_BOTH);
+						Packet::Free (Pack);
 						break;
 					}
 

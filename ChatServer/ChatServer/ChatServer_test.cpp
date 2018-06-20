@@ -59,7 +59,7 @@ private:
 	list<Player *> g_Sector[df_Sector_Y][df_Sector_X];
 
 	HANDLE Thread;
-	//HANDLE WakeUp;
+	HANDLE WakeUp;
 	UINT _UpdateTPS;
 	
 public:
@@ -72,7 +72,7 @@ public:
 	virtual void OnStart (void)
 	{
 		QueuePool = new CMemoryPool<QueuePack> (0);
-		//WakeUp = CreateEvent (NULL, FALSE, FALSE, NULL);
+		WakeUp = CreateEvent (NULL, FALSE, FALSE, NULL);
 
 		Thread = ( HANDLE )_beginthreadex (NULL, 0, UpdateThread, (void *)this, NULL, NULL);
 
@@ -80,7 +80,7 @@ public:
 	}
 	virtual void OnStop (void)
 	{
-		delete QueuePool;
+	//	delete QueuePool;
 		return;
 	}
 	virtual void OnRecv (UINT64 SessionID, Packet *p)
@@ -96,7 +96,7 @@ public:
 			LOG_LOG (L"ChatServer", LOG_ERROR, L"UPDATE QUEUE OverFlow");
 			Stop ();
 		}
-		//SetEvent (WakeUp);
+		SetEvent (WakeUp);
 		
 		return;
 	}
@@ -118,7 +118,7 @@ public:
 			Stop ();
 		}
 
-	//	SetEvent (WakeUp);
+		SetEvent (WakeUp);
 		return true;
 	}
 	virtual void OnClientLeave (UINT64 SessionID)
@@ -127,7 +127,13 @@ public:
 		pack->Type = LEAVE;
 		pack->SessionID = SessionID;
 
-	//	SetEvent (WakeUp);
+		if ( UpdateQueue.Enqueue (pack) == false )
+		{
+			LOG_LOG (L"Update", LOG_ERROR, L"UPDATE QUEUE OverFlow");
+			Stop ();
+		}
+
+		SetEvent (WakeUp);
 		return;
 	}
 
@@ -156,9 +162,9 @@ public:
 
 		Packet *pPacket;
 		QueuePack *Pack;
-	//while ( 1 )
+	while ( 1 )
 		{
-		//	WaitForSingleObject (WakeUp, INFINITE);
+			WaitForSingleObject (WakeUp, INFINITE);
 
 			Pack = NULL;
 			while ( 1 )
@@ -166,8 +172,8 @@ public:
 
 				if ( UpdateQueue.Dequeue (&Pack) == false )
 				{
-					//break;
-					continue;
+					break;
+					//continue;
 				}
 				try
 				{
@@ -261,7 +267,7 @@ public:
 		pPacket->GetData (( char * )ID, sizeof (ID));
 		pPacket->GetData (( char * )Nickname, sizeof (Nickname));
 		pPacket->GetData (SessionKey, sizeof (SessionKey));
-		
+		Packet::Free (pPacket);
 
 		Player *pPlayer = FindPlayer (Pack->SessionID);
 		if ( pPlayer == NULL )
@@ -276,7 +282,7 @@ public:
 		pPlayer->SessionID = SessionID;
 		pPlayer->Last_Message_Time = GetTickCount ();
 
-		Packet::Free (pPacket);
+
 
 
 		// 채팅서버 로그인 응답
@@ -306,6 +312,7 @@ public:
 		pPlayer->Last_Message_Time = GetTickCount ();
 
 
+		//기존 섹터 검색 및 플레이어 삭제.
 		if ( pPlayer->PosX != -1 && pPlayer->PosY != -1 )
 		{
 			list < Player *> &SectorList = g_Sector[pPlayer->PosY][pPlayer->PosX];
@@ -329,8 +336,9 @@ public:
 		*pPacket >> AccountNo;
 		*pPacket >> SectorX;
 		*pPacket >> SectorY;
+		Packet::Free (pPacket);
 
-
+		//새로운 섹터에 플레이어 삽입.
 		g_Sector[SectorY][SectorX].push_back (pPlayer);
 		pPlayer->PosX = SectorX;
 		pPlayer->PosY = SectorY;
@@ -452,24 +460,25 @@ public:
 
 	void PACKET_LEAVE (QueuePack *Pack)
 	{
-		Packet *pPacket = Pack->packet;
 		UINT64 SessionID = Pack->SessionID;
 		Player *pPlayer = FindPlayer (SessionID);
 		if ( pPlayer == NULL )
 		{
 			return;
 		}
-
-		list < Player *> &SectorList = g_Sector[pPlayer->PosY][pPlayer->PosX];
-		list<Player *>::iterator iter;
-		for ( iter = SectorList.begin (); iter != SectorList.end ();)
+		if ( pPlayer->PosX != -1 && pPlayer->PosY != -1 )
 		{
-			if ( *iter == pPlayer )
+			list < Player *> &SectorList = g_Sector[pPlayer->PosY][pPlayer->PosX];
+			list<Player *>::iterator iter;
+			for ( iter = SectorList.begin (); iter != SectorList.end ();)
 			{
-				SectorList.erase (iter);
-				break;
+				if ( *iter == pPlayer )
+				{
+					SectorList.erase (iter);
+					break;
+				}
+				iter++;
 			}
-			iter++;
 		}
 
 		Playerlist.erase (SessionID);
@@ -506,6 +515,9 @@ ChatServer Chat;
 
 int main ()
 {
+	LOG_DIRECTORY (L"LOG_FILE");
+	LOG_LEVEL (LOG_ERROR, false);
+
 	CServerConfig::Initialize ();
 	wprintf (L"MainThread Start\n");
 	if ( Chat.Start (_BIND_IP, _BIND_PORT, _CLIENT_MAX, _WORKER_THREAD_NUM) == false )

@@ -504,9 +504,9 @@ bool Packet::DeCode (HEADER *SrcHeader)
 	if ( SrcHeader == NULL )
 	{
 		GetData (( char * )&Buff.Code, 1);
-		GetData (( char * )Buff.Len, 2);
-		GetData (( char * )Buff.RandXOR, 1);
-		GetData (( char * )Buff.CheckSum, 1);
+		GetData (( char * )&Buff.Len, 2);
+		GetData (( char * )&Buff.RandXOR, 1);
+		GetData (( char * )&Buff.CheckSum, 1);
 	}
 	else
 	{
@@ -557,7 +557,7 @@ bool Packet::DeCode (HEADER *SrcHeader)
 	{
 		CheckSum += ReadPosBuff[Cnt];
 	}
-	char Chk = CheckSum % 256;
+	unsigned char Chk = ( unsigned char )CheckSum % 256;
 
 	if ( Buff.CheckSum != Chk )
 	{
