@@ -60,6 +60,7 @@ private:
 
 	HANDLE Thread;
 	HANDLE WakeUp;
+	bool Stopflag;
 	UINT _UpdateTPS;
 	
 public:
@@ -73,6 +74,7 @@ public:
 	{
 		QueuePool = new CMemoryPool<QueuePack> (0);
 		WakeUp = CreateEvent (NULL, FALSE, FALSE, NULL);
+		Stopflag = false;
 
 		Thread = ( HANDLE )_beginthreadex (NULL, 0, UpdateThread, (void *)this, NULL, NULL);
 
@@ -80,7 +82,8 @@ public:
 	}
 	virtual void OnStop (void)
 	{
-	//	delete QueuePool;
+		delete QueuePool;
+		Stopflag = true;
 		return;
 	}
 	virtual void OnRecv (UINT64 SessionID, Packet *p)
@@ -218,8 +221,13 @@ public:
 					SendPacket (Pack->SessionID, pPacket);
 					Packet::Free (pPacket);
 				}
-
+				_UpdateTPS++;
 				QueuePool->Free (Pack);
+			}
+
+			if ( Stopflag )
+			{
+				break;
 			}
 		}
 		return 0;
@@ -258,18 +266,32 @@ public:
 		UINT64 SessionID = Pack->SessionID;
 
 		INT64	AccountNo;
+		
 		WCHAR	ID[20];
 		WCHAR	Nickname[20];
 		char	SessionKey[64];
 		Packet *pPacket = Pack->packet;
 
+		//------------------------------------------------------------
+		// 채팅서버 로그인 요청
+		//
+		//	{
+		//		WORD	Type
+		//
+		//		INT64	AccountNo
+		//		WCHAR	ID[20]				// null 포함
+		//		WCHAR	Nickname[20]		// null 포함
+		//		char	SessionKey[64];
+		//	}
+		//
+		//------------------------------------------------------------
 		*pPacket >> AccountNo;
 		pPacket->GetData (( char * )ID, sizeof (ID));
 		pPacket->GetData (( char * )Nickname, sizeof (Nickname));
 		pPacket->GetData (SessionKey, sizeof (SessionKey));
 		Packet::Free (pPacket);
 
-		Player *pPlayer = FindPlayer (Pack->SessionID);
+		Player *pPlayer = FindPlayer (SessionID);
 		if ( pPlayer == NULL )
 		{
 			return NULL;
@@ -442,6 +464,7 @@ public:
 	{
 		Player *pUser;
 		DWORD CurrentTime = GetTickCount ();
+
 
 		map<UINT64, Player *>::iterator iter;
 		for ( iter = Playerlist.begin (); iter != Playerlist.end ();)

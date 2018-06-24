@@ -1,6 +1,7 @@
 #include"stdafx.h"
 #include "NetServer.h"
 #include "ServerConfig.h"
+#define MAKE_i64(hi, lo)    (  (LONGLONG(DWORD(hi) & 0xffffffff) << 32 ) | LONGLONG(DWORD(lo) & 0xffffffff)  )
 
 /*======================================================================
 //생성자
@@ -703,7 +704,12 @@ void CNetServer::PostSend (Session *p)
 	DWORD SendByte;
 	DWORD dwFlag = 0;
 	int retval;
-	InterlockedIncrement (( volatile long * )&p->p_IOChk.IOCount);
+
+	if ( InterlockedIncrement (( volatile long * )&p->p_IOChk.IOCount) == 1 )
+	{
+		IODecrement (p);
+		return;
+	}
 
 	if ( InterlockedCompareExchange (( volatile long * )&p->SendFlag, TRUE, FALSE) == TRUE )
 	{
@@ -778,19 +784,17 @@ void CNetServer::SessionRelease (Session * p)
 	IOChk ComChk;
 	ComChk.IOCount = 0;
 	ComChk.UseFlag = true;
+	INT64 ComBuf = MAKE_i64 (ComChk.UseFlag, ComChk.IOCount);
 	IOChk ExChk;
 	ExChk.IOCount = 0;
 	ExChk.UseFlag = false;
+	INT64 ExBuf = MAKE_i64 (ExChk.UseFlag, ExChk.IOCount);
 	
 	//IOCount와 UseFlag를 동시에 비교해서 IOCount가 0이고 UseFlag가 true일때만 Release진행. 
-	if ( !InterlockedCompareExchange64 (( volatile LONG64 * )&p->p_IOChk, ( LONG64 )&ExChk, ( LONG64 )&ComChk))
+	if ( !InterlockedCompareExchange64 (( volatile LONG64 * )&p->p_IOChk, ExBuf, ComBuf) )
 	{
 		return;
 	}
-
-	OnClientLeave (p->SessionID);
-
-	closesocket (p->sock);
 
 	p->RecvQ.ClearBuffer ();
 
@@ -819,8 +823,15 @@ void CNetServer::SessionRelease (Session * p)
 	}
 	
 
-	InterlockedDecrement (( volatile long * )&_Use_Session_Cnt);
+	OnClientLeave (p->SessionID);
 
+	int Cnt = InterlockedDecrement (( volatile long * )&_Use_Session_Cnt);
+	if ( Cnt < 0 )
+	{
+		LOG_LOG (L"Network", LOG_ERROR, L"_USE_Session_Error SessionID = %x, IOCount = %d, UseFlag = %d SessionCount = %d", p->SessionID, p->p_IOChk.IOCount, p->p_IOChk.UseFlag, Cnt);
+	}
+
+	closesocket (p->sock);
 
 	emptySession.Push (indexSessionID (p->SessionID));
 

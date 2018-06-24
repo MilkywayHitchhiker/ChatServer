@@ -1,6 +1,6 @@
 #pragma once
 #include "MemoryPool.h"
-#define MaxCnt 10000
+#define MaxCnt 50000
 
 
 /*
@@ -110,19 +110,29 @@ public :
 			//Tail의 next가 NULL이 아닐 경우 이미 누군가가 먼저 노드를 넣었으므로 Tail을 밀어줌.
 			if ( PreNode.pNode->pNext != NULL )
 			{
-				InterlockedCompareExchangePointer (( volatile PVOID * )_pTail->pNode, PreNode.pNode->pNext, PreNode.pNode);
-				continue;
+				InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode, PreNode.pNode->pNext, PreNode.pNode);
+
+				if ( InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode->pNext, pNode, PreNode.pNode) == PreNode.pNode )
+				{
+					LOG_LOG (L"LF_Queue", LOG_SYSTEM, L"Node Recursive");
+					InterlockedCompareExchange128 (( volatile LONG64 * )_pTail, Uniqueue, ( LONG64 )pNode, ( LONG64 * )&PreNode);
+					InterlockedIncrement64 (&_NodeCnt);
+					return true;
+				}
+				else
+				{
+					continue;
+				}
 			}
 
 			//Tail의 Next가 NULL일 경우 현재 노드 연결
 			if ( InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode->pNext, pNode, NULL) == NULL )
 			{
 				InterlockedCompareExchange128 (( volatile LONG64 * )_pTail, Uniqueue, ( LONG64 )pNode, ( LONG64 * )&PreNode);
-				break;
+				InterlockedIncrement64 (&_NodeCnt);
+				return true;
 			}
 		}
-		InterlockedIncrement64 (&_NodeCnt);
-		return true;
 	}
 
 
@@ -143,7 +153,7 @@ public :
 			PreNode.pNode = _pHead->pNode;
 			PreNode.UNIQUEUE = _pHead->UNIQUEUE;
 			
-			pNode = PreNode.pNode->pNext;
+			pNode = _pHead->pNode->pNext;
 
 			//헤드의 Next노드를 뽑는 것이므로 pNode가 NULL이라면 Dequeue 불가능.
 			if ( pNode == NULL )

@@ -102,7 +102,7 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\ChatServerDummy\_ChatServer.cnf">
+    <None Include="_ChatServer.cnf">
       <Filter>소스 파일\Config</Filter>
     </None>
   </ItemGroup>

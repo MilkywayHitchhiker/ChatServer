@@ -56,7 +56,7 @@ protected:
 	UINT _SendPacketTPS;
 	UINT _AcceptTotal;
 	UINT _AcceptTPS;
-	UINT _Use_Session_Cnt;
+	int _Use_Session_Cnt;
 
 	HANDLE *Thread;
 	int _WorkerThread_Num;
@@ -329,7 +329,7 @@ public :
 	//인자 : 없음
 	//리턴 : UINT
 	======================================================================*/
-	UINT Use_SessionCnt (void)
+	int Use_SessionCnt (void)
 	{
 		return _Use_Session_Cnt;
 	}
