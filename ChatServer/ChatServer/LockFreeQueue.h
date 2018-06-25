@@ -73,6 +73,7 @@ public :
 				return;
 			}
 		}
+		delete _pMemPool;
 	}
 
 
@@ -100,8 +101,6 @@ public :
 
 		INT64 Uniqueue = InterlockedIncrement64 (&_UniqueueNum);
 
-		
-
 		while ( 1 )
 		{
 			PreNode.pNode = _pTail->pNode;
@@ -110,19 +109,32 @@ public :
 			//Tail의 next가 NULL이 아닐 경우 이미 누군가가 먼저 노드를 넣었으므로 Tail을 밀어줌.
 			if ( PreNode.pNode->pNext != NULL )
 			{
-				InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode, PreNode.pNode->pNext, PreNode.pNode);
+				InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode, _pTail->pNode->pNext, PreNode.pNode);
 
-				if ( InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode->pNext, pNode, PreNode.pNode) == PreNode.pNode )
+				if ( PreNode.pNode == PreNode.pNode->pNext )
 				{
-					LOG_LOG (L"LF_Queue", LOG_SYSTEM, L"Node Recursive");
-					InterlockedCompareExchange128 (( volatile LONG64 * )_pTail, Uniqueue, ( LONG64 )pNode, ( LONG64 * )&PreNode);
-					InterlockedIncrement64 (&_NodeCnt);
-					return true;
+					NODE *pNodeBuf = _pHead->pNode;
+					while ( 1 )
+					{
+						if ( pNodeBuf == NULL )
+						{
+							NODE *ptNodeBuf = _pTail->pNode;
+							while ( 1 )
+							{
+								if ( ptNodeBuf == NULL )
+								{
+									return false;
+								}
+								LOG_LOG (L"LF_Queue", LOG_SYSTEM, L"Node Recursive _pTail Node = %p pNext = %p", ptNodeBuf, ptNodeBuf->pNext);
+								ptNodeBuf = ptNodeBuf->pNext;
+							}
+						}
+						LOG_LOG (L"LF_Queue", LOG_SYSTEM, L"Node Recursive _pHead Node = %p pNext = %p", pNodeBuf, pNodeBuf->pNext);
+						pNodeBuf = pNodeBuf->pNext;
+					}
 				}
-				else
-				{
-					continue;
-				}
+				continue;
+
 			}
 
 			//Tail의 Next가 NULL일 경우 현재 노드 연결

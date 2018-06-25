@@ -29,6 +29,7 @@ public :
 
 	CQueue_LF<QueuePack *> UpdateQueue;
 	CMemoryPool<QueuePack> *QueuePool;
+
 private:
 	struct Player
 	{
@@ -50,7 +51,7 @@ private:
 		DWORD Last_Message_Time;
 	};
 	
-
+	CMemoryPool<Player> *Player_Pool;
 
 	//플레이어 리스트
 	map<UINT64, Player *> Playerlist;
@@ -73,6 +74,7 @@ public:
 	virtual void OnStart (void)
 	{
 		QueuePool = new CMemoryPool<QueuePack> (0);
+		Player_Pool = new CMemoryPool<Player> (0);
 		WakeUp = CreateEvent (NULL, FALSE, FALSE, NULL);
 		Stopflag = false;
 
@@ -82,8 +84,11 @@ public:
 	}
 	virtual void OnStop (void)
 	{
-		delete QueuePool;
 		Stopflag = true;
+		SetEvent (WakeUp);
+
+		delete QueuePool;
+		delete Player_Pool;
 		return;
 	}
 	virtual void OnRecv (UINT64 SessionID, Packet *p)
@@ -249,7 +254,7 @@ public:
 
 	void PACKET_CS_CHAT_SERVER (QueuePack *Pack)
 	{
-		Player *pNewPlayer = new Player;
+		Player *pNewPlayer = Player_Pool->Alloc();
 		lstrcpyW (pNewPlayer->IP, Pack->IP);
 		pNewPlayer->PosX = -1;
 		pNewPlayer->PosY = -1;
@@ -505,7 +510,7 @@ public:
 		}
 
 		Playerlist.erase (SessionID);
-		delete pPlayer;
+		Player_Pool->Free(pPlayer);
 		return;
 	}
 
@@ -521,6 +526,19 @@ public:
 			InterlockedExchange (( volatile LONG * )&_UpdateTPS, 0);
 		}
 		return UpdateTPS;
+	}
+
+	INT64 UpdateQueueUse (void)
+	{
+		return UpdateQueue.GetUseSize ();
+	}
+	UINT Up_Q_PoolAlloc (void)
+	{
+		return QueuePool->GetAllocCount ();
+	}
+	UINT Up_Q_PoolFull (void)
+	{
+		return QueuePool->GetFullCount ();
 	}
 };
 
