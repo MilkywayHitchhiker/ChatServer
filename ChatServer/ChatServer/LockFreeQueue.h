@@ -112,7 +112,8 @@ public :
 
 			if ( PreNode.pNode->pNext != NULL )
 			{
-				InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode, PreNode.pNode->pNext, PreNode.pNode);
+				//InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode, _pTail->pNode->pNext, PreNode.pNode);
+				InterlockedCompareExchange128 (( volatile LONG64 * )_pTail, Uniqueue, ( LONG64 )_pTail->pNode->pNext, ( LONG64 * )&PreNode);
 				continue;
 			}
 
