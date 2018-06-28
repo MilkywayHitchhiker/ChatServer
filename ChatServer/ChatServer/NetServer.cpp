@@ -498,8 +498,6 @@ void CNetServer::WorkerThread (void)
 
 				
 				pSession->SendFlag = FALSE;
-
-
 				if ( pSession->SendQ.GetUseSize () > 0 )
 				{
 					PostSend (pSession);
@@ -700,10 +698,17 @@ void CNetServer::PostRecv (Session * p)
 ======================================================================*/
 void CNetServer::PostSend (Session *p)
 {
-	int Cnt = 0;
+
 	DWORD SendByte;
 	DWORD dwFlag = 0;
 	int retval;
+
+
+
+	if ( p->p_IOChk.UseFlag == false )
+	{
+		return;
+	}
 
 	if ( InterlockedIncrement (( volatile long * )&p->p_IOChk.IOCount) == 1 )
 	{
@@ -718,6 +723,8 @@ void CNetServer::PostSend (Session *p)
 	}
 
 	//WSASend 셋팅 및 등록부
+
+	int Cnt = 0;
 	WSABUF buf[SendbufMax];
 
 	Packet *pack;
@@ -756,11 +763,11 @@ void CNetServer::PostSend (Session *p)
 
 			if ( Errcode == WSAENOBUFS )
 			{
-				LOG_LOG (L"Network", LOG_WARNING, L"SessionID = 0x%p, ErrorCode = %ld WSAENOBUFS ERROR ", p->SessionID, Errcode);
+				LOG_LOG (L"Network", LOG_ERROR, L"SessionID = 0x%p, ErrorCode = %ld WSAENOBUFS ERROR ", p->SessionID, Errcode);
 			}
 			else
 			{
-				LOG_LOG (L"Network", LOG_ERROR, L"SessionID = 0x%p, ErrorCode = %ld PostSend", p->SessionID, Errcode);
+				LOG_LOG (L"Network", LOG_DEBUG, L"SessionID = 0x%p, ErrorCode = %ld PostSend", p->SessionID, Errcode);
 			}
 
 			shutdown (p->sock, SD_BOTH);
@@ -789,12 +796,13 @@ void CNetServer::SessionRelease (Session * p)
 	ExChk.IOCount = 0;
 	ExChk.UseFlag = false;
 	INT64 ExBuf = MAKE_i64 (ExChk.UseFlag, ExChk.IOCount);
-	
+
 	//IOCount와 UseFlag를 동시에 비교해서 IOCount가 0이고 UseFlag가 true일때만 Release진행. 
 	if ( !InterlockedCompareExchange64 (( volatile LONG64 * )&p->p_IOChk, ExBuf, ComBuf) )
 	{
 		return;
 	}
+
 
 	p->RecvQ.ClearBuffer ();
 
