@@ -573,6 +573,8 @@ int main ()
 	UINT RecvTPS = 0;
 	UINT SendTPS = 0;
 	UINT ConnectSessionCnt = 0;
+
+	UINT Player_Cnt = 0;
 	int MemoryPoolCnt = 0;
 	int MemoryPoolUse = 0;
 

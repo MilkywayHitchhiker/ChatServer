@@ -283,6 +283,7 @@ void CNetServer::AcceptThread (void)
 		p->SessionID = CreateSessionID (Cnt, InterlockedIncrement64 (( volatile LONG64 * )&_SessionID_Count));
 		p->p_IOChk.UseFlag = true;
 		p->SendFlag = false;
+		p->SendDisconnect = false;
 
 		InterlockedIncrement (( volatile long * )&_Use_Session_Cnt);
 
@@ -301,6 +302,10 @@ void CNetServer::AcceptThread (void)
 			continue;
 		}
 
+		linger ling;
+		ling.l_onoff = 1;
+		ling.l_linger = 0;
+		setsockopt (p->sock, SOL_SOCKET, SO_LINGER, ( char * )&ling, sizeof (ling));
 		PostRecv (p);
 
 		InterlockedIncrement (( volatile long * )&_AcceptTPS);
@@ -495,14 +500,19 @@ void CNetServer::WorkerThread (void)
 					}
 					Packet::Free(Pack);
 				}
-
-				
-				pSession->SendFlag = FALSE;
-				if ( pSession->SendQ.GetUseSize () > 0 )
+				if ( pSession->SendDisconnect == TRUE )
 				{
-					PostSend (pSession);
+					shutdown (pSession->sock,SD_BOTH);
 				}
-				
+				else
+				{
+					pSession->SendFlag = FALSE;
+					if ( pSession->SendQ.GetUseSize () > 0 )
+					{
+						PostSend (pSession);
+					}
+				}
+								
 				InterlockedIncrement (( volatile LONG * )&_SendPacketTPS);
 
 				PROFILE_END (L"send");
@@ -565,6 +575,8 @@ bool CNetServer::InitializeNetwork (WCHAR *IP, int PORT)
 		return false;
 	}
 
+	int optval = 0;
+	setsockopt (_ListenSock, SOL_SOCKET, SO_SNDBUF, ( char* )&optval, sizeof (optval));
 
 	//listen
 	retval = listen (_ListenSock, SOMAXCONN);
@@ -601,7 +613,7 @@ CNetServer::Session *CNetServer::FindLockSession (UINT64 SessionID)
 	//index로 찾은 해당 세션의 id가 내가 찾던 세션이 아닐 경우
 	if ( Session_Array[Cnt].p_IOChk.UseFlag == false  )
 	{
-		LOG_LOG (L"Network", LOG_WARNING, L"Delete Session search = 0x%p, Array = 0x%p", SessionID, Session_Array[Cnt].SessionID);
+		LOG_LOG (L"Network", LOG_DEBUG, L"Delete Session search = 0x%p, Array = 0x%p", SessionID, Session_Array[Cnt].SessionID);
 		IODecrement (&Session_Array[Cnt]);
 		return NULL;
 	}
@@ -609,7 +621,7 @@ CNetServer::Session *CNetServer::FindLockSession (UINT64 SessionID)
 	//세션 ID가 일치하지 않을 경우.
 	if ( Session_Array[Cnt].SessionID != SessionID )
 	{
-		LOG_LOG (L"Network", LOG_WARNING, L"SessionID not match search = 0x%p, Array = 0x%p", SessionID, Session_Array[Cnt].SessionID);
+		LOG_LOG (L"Network", LOG_DEBUG, L"SessionID not match search = 0x%p, Array = 0x%p", SessionID, Session_Array[Cnt].SessionID);
 		IODecrement (&Session_Array[Cnt]);
 		return NULL;
 	}
@@ -696,14 +708,14 @@ void CNetServer::PostRecv (Session * p)
 //인자 : Session *
 //리턴 : 없음
 ======================================================================*/
-void CNetServer::PostSend (Session *p)
+void CNetServer::PostSend (Session *p, bool Disconnect)
 {
 
 	DWORD SendByte;
 	DWORD dwFlag = 0;
 	int retval;
 
-
+	p->SendDisconnect = Disconnect;
 
 	if ( p->p_IOChk.UseFlag == false )
 	{
@@ -779,7 +791,6 @@ void CNetServer::PostSend (Session *p)
 }
 
 
-
 /*======================================================================
 //SessionRelease
 //설명 : IOCount가 0이면 진입. UseFlag가 false면 SessionRelease작업 진행.
@@ -803,6 +814,7 @@ void CNetServer::SessionRelease (Session * p)
 		return;
 	}
 
+	OnClientLeave (p->SessionID);
 
 	p->RecvQ.ClearBuffer ();
 
@@ -829,15 +841,14 @@ void CNetServer::SessionRelease (Session * p)
 
 		Packet::Free (pack);
 	}
-	
-
-	OnClientLeave (p->SessionID);
 
 	int Cnt = InterlockedDecrement (( volatile long * )&_Use_Session_Cnt);
 	if ( Cnt < 0 )
 	{
 		LOG_LOG (L"Network", LOG_ERROR, L"_USE_Session_Error SessionID = %x, IOCount = %d, UseFlag = %d SessionCount = %d", p->SessionID, p->p_IOChk.IOCount, p->p_IOChk.UseFlag, Cnt);
 	}
+
+
 
 	closesocket (p->sock);
 

@@ -35,6 +35,7 @@ protected:
 
 		
 		long SendFlag = FALSE;
+		bool SendDisconnect = FALSE;
 		CQueue_LF<Packet *> SendQ;
 		OVERLAPPED SendOver;
 		CStack_LF<Packet *> SendPack;
@@ -152,8 +153,7 @@ protected:
 	//인자 : Session *
 	//리턴 : 없음
 	======================================================================*/
-	void PostSend (Session *p);
-
+	void PostSend (Session *p,bool Disconnect = false);
 
 
 	/*======================================================================
