@@ -87,7 +87,7 @@ public:
 		Stopflag = true;
 		SetEvent (WakeUp);
 
-		delete QueuePool;
+	//	delete QueuePool;
 		delete Player_Pool;
 		return;
 	}
@@ -217,9 +217,30 @@ public:
 				}
 				catch ( ErrorAlloc Err )
 				{
-					LOG_LOG (L"Update", LOG_ERROR, L"SessionID 0x%p, PacketError");
+					WCHAR GetErr[20];
+					switch ( Err.Flag )
+					{
+					case Get_Error:
+						swprintf_s (GetErr, L"GetData Error");
+
+					case Put_Error:
+						swprintf_s (GetErr, L"PutData Error");
+
+					case PutHeader_Error:
+						swprintf_s (GetErr, L"PutHeader Error");
+
+					}
+
+					LOG_LOG (L"Update", LOG_ERROR, L"SessionID 0x%p, PacketError HeaderSize = %d, DataSize = %d, GetSize = %d, PutSize = %d, ErrorType = %s", Err.UseHeaderSize, Err.UseDataSize, Err.GetSize, Err.PutSize, GetErr);
+
+					if ( Pack->packet != NULL )
+					{
+						Packet::Free (pPacket);
+					}
 					Disconnect (Pack->SessionID);
+					QueuePool->Free (Pack);
 					break;
+
 				}
 				if ( pPacket != NULL )
 				{
@@ -266,7 +287,7 @@ public:
 		return;
 	}
 
-	Packet * PACKET_CS_CHAT_REQ_LOGIN (QueuePack *Pack)
+	Packet *PACKET_CS_CHAT_REQ_LOGIN (QueuePack *Pack)
 	{
 		UINT64 SessionID = Pack->SessionID;
 
@@ -557,7 +578,7 @@ ChatServer Chat;
 int main ()
 {
 	LOG_DIRECTORY (L"LOG_FILE");
-	LOG_LEVEL (LOG_WARNING, false);
+	LOG_LEVEL (LOG_DEBUG, false);
 
 	CServerConfig::Initialize ();
 	wprintf (L"MainThread Start\n");

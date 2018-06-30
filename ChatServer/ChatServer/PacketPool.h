@@ -18,7 +18,13 @@ struct ErrorAlloc
 	int PutSize;
 	int UseHeaderSize;
 
-	bool Get;
+	int Flag;
+};
+enum ThrowCase
+{
+	Get_Error = 1,
+	Put_Error = 2,
+	PutHeader_Error = 3
 };
 
 class Packet

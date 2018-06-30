@@ -1,0 +1,1 @@
+[Error][2018.06.30 23:19:35 / ERROR /         54] RES_LOGIN - Account No Error (My:11297  Recv:13359)

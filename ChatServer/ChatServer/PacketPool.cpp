@@ -344,7 +344,7 @@ int Packet::GetData(char *chpDest, int iSize)
 		err.UseHeaderSize = 0;
 		err.GetSize = iSize;
 		err.UseDataSize = _iDataSize;
-		err.Get = true;
+		err.Flag = Get_Error;
 		throw err;
 	}
 
@@ -370,7 +370,7 @@ int Packet::PutData(char *chpSrc, int iSrcSize)
 			err.PutSize = iSrcSize;
 			err.UseDataSize = _iDataSize;
 
-			err.Get = false;
+			err.Flag = Put_Error;
 			throw err;
 	}
 
@@ -392,7 +392,7 @@ int	Packet::PutHeader (char *chpSrc, int iSrcSize)
 		err.PutSize = 0;
 		err.UseDataSize = _iDataSize;
 		err.UseHeaderSize = HeaderSize;
-		err.Get = false;
+		err.Flag = PutHeader_Error;
 		throw err;
 	}
 		

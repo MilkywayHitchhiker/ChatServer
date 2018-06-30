@@ -4,15 +4,6 @@
     <ClCompile Include="ChatServer_test.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="NetServer.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="PacketPool.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="RingBuffer.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -31,17 +22,20 @@
     <ClCompile Include="Parser.cpp">
       <Filter>소스 파일\Config</Filter>
     </ClCompile>
+    <ClCompile Include="PacketPool.cpp">
+      <Filter>소스 파일\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="RingBuffer.cpp">
+      <Filter>소스 파일\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetServer.cpp">
+      <Filter>소스 파일\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="CreatePacket.cpp">
+      <Filter>소스 파일\Network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="NetServer.h">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketPool.h">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="RingBuffer.h">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
     <ClInclude Include="lib\CrashDump.h">
       <Filter>소스 파일\lib</Filter>
     </ClInclude>
@@ -78,6 +72,18 @@
     <ClInclude Include="Parser.h">
       <Filter>소스 파일\Config</Filter>
     </ClInclude>
+    <ClInclude Include="PacketPool.h">
+      <Filter>소스 파일\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="RingBuffer.h">
+      <Filter>소스 파일\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetServer.h">
+      <Filter>소스 파일\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="CreatePacket.h">
+      <Filter>소스 파일\Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="헤더 파일">
@@ -94,6 +100,9 @@
     </Filter>
     <Filter Include="소스 파일\Config">
       <UniqueIdentifier>{2b0c6a26-c92c-43e7-a4eb-e4d70db8e704}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Network">
+      <UniqueIdentifier>{fd506644-b84f-4845-a749-bad91961a096}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

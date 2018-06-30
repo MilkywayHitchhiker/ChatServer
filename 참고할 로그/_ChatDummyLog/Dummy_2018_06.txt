@@ -1,0 +1,4 @@
+[Dummy][2018.06.29 21:44:38 / SYSTM /          1] ## ChatServer Process Run ##
+[Dummy][2018.06.29 21:44:57 / SYSTM /          1] ## ChatServer Process Run ##
+[Dummy][2018.06.29 21:47:57 / SYSTM /          1] ## ChatServer Process Run ##
+[Dummy][2018.06.29 21:48:20 / SYSTM /          1] ## ChatServer Process Run ##

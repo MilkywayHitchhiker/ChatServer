@@ -1,0 +1,103 @@
+
+[00000001] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]   NetworkStart IP = 0.0.0.0, PORT = 12001, SessionMax = 20000, WorkerThreadNum = 10
+[00000002] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000003] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000004] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000006] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000007] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000008] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000009] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000010] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000011] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000012] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  Worker Thread_Start
+[00000013] [ Network ] [2018-06-29 21:47:50 / SYSTEM ]  AcceptThread_Start
+[00000014] [ Network ] [2018-06-29 21:50:31 / ERROR ]  SessionID = 0x3F54000000026D66, ErrorCode = 10054 PostRecv
+[00000015] [ Network ] [2018-06-29 21:51:24 / ERROR ]  SessionID = 0x3F2B000000035746, ErrorCode = 10054 PostRecv
+[00000016] [ Network ] [2018-06-29 21:52:24 / ERROR ]  SessionID = 0x4CA50000000468A9, ErrorCode = 10054 PostRecv
+[00000017] [ Network ] [2018-06-29 21:55:22 / ERROR ]  SessionID = 0x3778000000079AA8, ErrorCode = 10054 PostRecv
+[00000018] [ Network ] [2018-06-29 21:56:06 / ERROR ]  SessionID = 0x35A8000000086F29, ErrorCode = 10054 PostRecv
+[00000019] [ Network ] [2018-06-29 21:56:38 / ERROR ]  SessionID = 0x2CBF00000008F892, ErrorCode = 10054 PostRecv
+[00000020] [ Network ] [2018-06-29 21:57:27 / ERROR ]  SessionID = 0x451800000009B6AE, ErrorCode = 10054 PostRecv
+[00000021] [ Network ] [2018-06-29 22:02:05 / ERROR ]  SessionID = 0x3B1C0000000EE206, ErrorCode = 10054 PostRecv
+[00000022] [ Network ] [2018-06-29 22:03:12 / ERROR ]  SessionID = 0x3C6D0000001014E1, ErrorCode = 10054 PostRecv
+[00000023] [ Network ] [2018-06-29 22:25:30 / ERROR ]  SessionID = 0x4A7900000027F241, ErrorCode = 10054 PostRecv
+[00000024] [ Network ] [2018-06-29 22:57:18 / ERROR ]  SessionID = 0x3FB50000004A37C2, ErrorCode = 10038 PostRecv
+[00000025] [ Network ] [2018-06-29 22:57:20 / ERROR ]  SessionID 0x3FB50000004A37C4, Decode Error CheckSum
+[00000026] [ Network ] [2018-06-29 22:57:20 / ERROR ]  SessionID = 0x3FB50000004A37C4, ErrorCode = 10058 PostRecv
+[00000027] [ Network ] [2018-06-30 00:45:49 / ERROR ]  SessionID = 0x45B3000000BEA70C, ErrorCode = 10054 PostRecv
+[00000028] [ Network ] [2018-06-30 01:13:46 / ERROR ]  SessionID = 0x492B000000DC9EE9, ErrorCode = 10054 PostRecv
+[00000029] [ Network ] [2018-06-30 01:35:32 / ERROR ]  SessionID = 0x46D7000000F3FA70, ErrorCode = 10054 PostRecv
+[00000030] [ Network ] [2018-06-30 01:36:21 / ERROR ]  SessionID = 0x2E68000000F4CFBC, ErrorCode = 10054 PostRecv
+[00000031] [ Network ] [2018-06-30 01:59:49 / ERROR ]  SessionID = 0x423E0000010DF38E, ErrorCode = 10054 PostRecv
+[00000032] [ Network ] [2018-06-30 02:11:48 / ERROR ]  SessionID = 0x34220000011ACB26, ErrorCode = 10054 PostRecv
+[00000033] [ Network ] [2018-06-30 02:48:21 / ERROR ]  SessionID = 0x380A000001422056, ErrorCode = 10054 PostRecv
+[00000034] [ Network ] [2018-06-30 02:54:20 / ERROR ]  SessionID = 0x4A20000001488FC6, ErrorCode = 10054 PostRecv
+[00000035] [ Network ] [2018-06-30 04:02:45 / ERROR ]  SessionID = 0x480F00000191C44E, ErrorCode = 10054 PostRecv
+[00000036] [ Network ] [2018-06-30 04:07:52 / ERROR ]  SessionID = 0x3DB1000001975FA4, ErrorCode = 10054 PostRecv
+[00000037] [ Network ] [2018-06-30 04:19:36 / ERROR ]  SessionID = 0x406D000001A3B0B6, ErrorCode = 10054 PostRecv
+[00000038] [ Network ] [2018-06-30 04:46:37 / ERROR ]  SessionID = 0x346E000001C0AB77, ErrorCode = 10054 PostRecv
+[00000039] [ Network ] [2018-06-30 04:50:58 / ERROR ]  SessionID = 0x393D000001C54E59, ErrorCode = 10054 PostRecv
+[00000040] [ Network ] [2018-06-30 05:09:35 / ERROR ]  SessionID = 0x363E000001D93785, ErrorCode = 10054 PostRecv
+[00000041] [ Network ] [2018-06-30 05:38:34 / ERROR ]  SessionID = 0x4878000001F8203D, ErrorCode = 10054 PostRecv
+[00000042] [ Network ] [2018-06-30 05:45:43 / ERROR ]  SessionID = 0x3B04000001FFC42E, ErrorCode = 10054 PostRecv
+[00000043] [ Network ] [2018-06-30 06:17:30 / ERROR ]  SessionID = 0x341900000221ABD2, ErrorCode = 10054 PostRecv
+[00000044] [ Network ] [2018-06-30 06:27:36 / ERROR ]  SessionID = 0x3A3C0000022C6DC7, ErrorCode = 10054 PostRecv
+[00000045] [ Network ] [2018-06-30 06:32:04 / ERROR ]  SessionID = 0x418C000002313C49, ErrorCode = 10054 PostRecv
+[00000046] [ Network ] [2018-06-30 06:43:42 / ERROR ]  SessionID = 0x32560000023DAAA8, ErrorCode = 10054 PostRecv
+[00000047] [ Network ] [2018-06-30 06:56:03 / ERROR ]  SessionID = 0x2E0E0000024A6CEA, ErrorCode = 10054 PostRecv
+[00000048] [ Network ] [2018-06-30 07:01:15 / ERROR ]  SessionID = 0x41B200000250045C, ErrorCode = 10054 PostRecv
+[00000049] [ Network ] [2018-06-30 07:02:38 / ERROR ]  SessionID = 0x43DF000002518530, ErrorCode = 10054 PostRecv
+[00000050] [ Network ] [2018-06-30 07:33:48 / ERROR ]  SessionID = 0x480000000272D1B4, ErrorCode = 10054 PostRecv
+[00000051] [ Network ] [2018-06-30 07:43:14 / ERROR ]  SessionID = 0x3A1A0000027D3449, ErrorCode = 10054 PostRecv
+[00000052] [ Network ] [2018-06-30 07:50:49 / ERROR ]  SessionID = 0x420000000285408E, ErrorCode = 10054 PostRecv
+[00000053] [ Network ] [2018-06-30 08:07:36 / ERROR ]  SessionID = 0x4DBF000002972E56, ErrorCode = 10054 PostRecv
+[00000054] [ Network ] [2018-06-30 08:26:01 / ERROR ]  SessionID = 0x2EDB000002AADAC8, ErrorCode = 10054 PostRecv
+[00000055] [ Network ] [2018-06-30 08:28:29 / ERROR ]  SessionID = 0x3814000002ADA5BA, ErrorCode = 10054 PostRecv
+[00000056] [ Network ] [2018-06-30 09:07:24 / ERROR ]  SessionID = 0x3435000002D71DCA, ErrorCode = 10054 PostRecv
+[00000057] [ Network ] [2018-06-30 09:10:26 / ERROR ]  SessionID = 0x44C4000002DA6E49, ErrorCode = 10054 PostRecv
+[00000058] [ Network ] [2018-06-30 09:15:48 / ERROR ]  SessionID = 0x40DB000002E0302B, ErrorCode = 10054 PostRecv
+[00000059] [ Network ] [2018-06-30 09:20:04 / ERROR ]  SessionID = 0x4C06000002E4BA7C, ErrorCode = 10054 PostRecv
+[00000060] [ Network ] [2018-06-30 09:27:05 / ERROR ]  SessionID = 0x4C8C000002EC289C, ErrorCode = 10054 PostRecv
+[00000061] [ Network ] [2018-06-30 09:49:46 / ERROR ]  SessionID = 0x4C9300000304552B, ErrorCode = 10054 PostRecv
+[00000062] [ Network ] [2018-06-30 10:44:23 / ERROR ]  SessionID = 0x3AF00000033F0AF8, ErrorCode = 10054 PostRecv
+[00000063] [ Network ] [2018-06-30 10:49:02 / ERROR ]  SessionID = 0x4AD500000343E64F, ErrorCode = 10054 PostRecv
+[00000064] [ Network ] [2018-06-30 10:58:46 / ERROR ]  SessionID = 0x30110000034E6E10, ErrorCode = 10054 PostRecv
+[00000065] [ Network ] [2018-06-30 11:35:11 / ERROR ]  SessionID = 0x3EC3000003757698, ErrorCode = 10054 PostRecv
+[00000066] [ Network ] [2018-06-30 11:40:11 / ERROR ]  SessionID = 0x2A190000037AC79E, ErrorCode = 10054 PostRecv
+[00000067] [ Network ] [2018-06-30 12:07:03 / ERROR ]  SessionID = 0x3EA3000003977EE5, ErrorCode = 10054 PostRecv
+[00000068] [ Network ] [2018-06-30 12:34:27 / ERROR ]  SessionID = 0x2E5B000003B4B388, ErrorCode = 10058 PostRecv
+[00000069] [ Network ] [2018-06-30 12:36:50 / ERROR ]  SessionID = 0x317F000003B75461, ErrorCode = 10054 PostRecv
+[00000070] [ Network ] [2018-06-30 12:38:16 / ERROR ]  SessionID = 0x4CF2000003B8E915, ErrorCode = 10054 PostRecv
+[00000071] [ Network ] [2018-06-30 12:40:26 / ERROR ]  SessionID = 0x2CED000003BB3016, ErrorCode = 10054 PostRecv
+[00000072] [ Network ] [2018-06-30 12:57:29 / ERROR ]  SessionID = 0x36F4000003CD12B1, ErrorCode = 10054 PostRecv
+[00000073] [ Network ] [2018-06-30 13:05:24 / ERROR ]  SessionID = 0x300F000003D5AF26, ErrorCode = 10054 PostRecv
+[00000074] [ Network ] [2018-06-30 13:16:14 / ERROR ]  SessionID = 0x2DDB000003E14E77, ErrorCode = 10054 PostRecv
+[00000075] [ Network ] [2018-06-30 13:26:08 / ERROR ]  SessionID = 0x3718000003EBE2AA, ErrorCode = 10054 PostRecv
+[00000076] [ Network ] [2018-06-30 13:31:48 / ERROR ]  SessionID = 0x2B4C000003F1CFFC, ErrorCode = 10054 PostRecv
+[00000077] [ Network ] [2018-06-30 13:34:41 / ERROR ]  SessionID = 0x475B000003F4E126, ErrorCode = 10054 PostRecv
+[00000078] [ Network ] [2018-06-30 13:44:00 / ERROR ]  SessionID = 0x47E9000003FED707, ErrorCode = 10054 PostRecv
+[00000079] [ Network ] [2018-06-30 13:47:44 / ERROR ]  SessionID = 0x395A00000402D7B0, ErrorCode = 10054 PostRecv
+[00000080] [ Network ] [2018-06-30 13:54:50 / ERROR ]  SessionID = 0x3E1F0000040A3E9A, ErrorCode = 10054 PostRecv
+[00000081] [ Network ] [2018-06-30 14:11:26 / ERROR ]  SessionID = 0x2B0D0000041BDB8D, ErrorCode = 10054 PostRecv
+[00000082] [ Network ] [2018-06-30 14:13:46 / ERROR ]  SessionID = 0x47290000041E6F54, ErrorCode = 10054 PostRecv
+[00000083] [ Network ] [2018-06-30 14:18:53 / ERROR ]  SessionID = 0x453300000423E399, ErrorCode = 10054 PostRecv
+[00000084] [ Network ] [2018-06-30 14:57:51 / ERROR ]  SessionID = 0x31B70000044D2A13, ErrorCode = 10054 PostRecv
+[00000085] [ Network ] [2018-06-30 15:04:12 / ERROR ]  SessionID = 0x305A00000453A380, ErrorCode = 10054 PostRecv
+[00000086] [ Network ] [2018-06-30 15:04:29 / ERROR ]  SessionID = 0x35A00000045441B2, ErrorCode = 10054 PostRecv
+[00000087] [ Network ] [2018-06-30 16:01:52 / ERROR ]  SessionID = 0x4867000004911498, ErrorCode = 10054 PostRecv
+[00000088] [ Network ] [2018-06-30 16:23:32 / ERROR ]  SessionID = 0x35AC000004A80E8E, ErrorCode = 10054 PostRecv
+[00000089] [ Network ] [2018-06-30 16:43:47 / ERROR ]  SessionID = 0x3CFF000004BDA2E2, ErrorCode = 10054 PostRecv
+[00000090] [ Network ] [2018-06-30 17:47:44 / ERROR ]  SessionID = 0x3AF100000501E563, ErrorCode = 10054 PostRecv
+[00000091] [ Network ] [2018-06-30 17:59:25 / ERROR ]  SessionID = 0x317F0000050E4C1D, ErrorCode = 10054 PostRecv
+[00000092] [ Network ] [2018-06-30 18:24:02 / ERROR ]  SessionID = 0x38B6000005289E72, ErrorCode = 10054 PostRecv
+[00000093] [ Network ] [2018-06-30 19:05:19 / ERROR ]  SessionID = 0x4DE000000554967C, ErrorCode = 10054 PostRecv
+[00000094] [ Network ] [2018-06-30 19:12:29 / ERROR ]  SessionID = 0x4D4A0000055C136E, ErrorCode = 10054 PostRecv
+[00000095] [ Network ] [2018-06-30 19:40:36 / ERROR ]  SessionID = 0x37660000057A1E30, ErrorCode = 10054 PostRecv
+[00000096] [ Network ] [2018-06-30 20:00:45 / ERROR ]  SessionID = 0x3ADC0000058F8DB1, ErrorCode = 10054 PostRecv
+[00000097] [ Network ] [2018-06-30 20:12:11 / ERROR ]  SessionID = 0x29660000059B6FCC, ErrorCode = 10054 PostRecv
+[00000098] [ Network ] [2018-06-30 20:14:07 / ERROR ]  SessionID = 0x4B770000059DBABF, ErrorCode = 10054 PostRecv
+[00000099] [ Network ] [2018-06-30 20:21:49 / ERROR ]  SessionID = 0x3630000005A5E0E6, ErrorCode = 10054 PostRecv
+[00000100] [ Network ] [2018-06-30 21:08:20 / ERROR ]  SessionID = 0x39C3000005D733A6, ErrorCode = 10054 PostRecv
+[00000101] [ Network ] [2018-06-30 22:43:00 / ERROR ]  SessionID = 0x34120000063BC0A4, ErrorCode = 10054 PostRecv
+[00000102] [ Network ] [2018-06-30 22:58:07 / ERROR ]  SessionID = 0x36390000064BCE51, ErrorCode = 10054 PostRecv
+[00000103] [ Network ] [2018-06-30 23:32:24 / ERROR ]  SessionID = 0x2FBB000006695D03, ErrorCode = 10054 PostRecv

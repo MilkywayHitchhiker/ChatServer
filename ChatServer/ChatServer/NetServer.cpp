@@ -466,7 +466,22 @@ void CNetServer::WorkerThread (void)
 					}
 					catch ( ErrorAlloc Err )
 					{
-						LOG_LOG (L"Network", LOG_ERROR, L"SessionID 0x%p, PacketError");
+						WCHAR GetErr[20];
+						switch ( Err.Flag )
+						{
+						case Get_Error:
+							swprintf_s (GetErr, L"GetData Error");
+
+						case Put_Error:
+							swprintf_s (GetErr, L"PutData Error");
+
+						case PutHeader_Error:
+							swprintf_s (GetErr, L"PutHeader Error");
+
+						}
+
+
+						LOG_LOG (L"Update", LOG_ERROR, L"SessionID 0x%p, PacketError HeaderSize = %d, DataSize = %d, GetSize = %d, PutSize = %d, ErrorType = %s", Err.UseHeaderSize, Err.UseDataSize, Err.GetSize, Err.PutSize, GetErr);
 						shutdown (pSession->sock, SD_BOTH);
 						Packet::Free (Pack);
 						break;
@@ -685,11 +700,11 @@ void CNetServer::PostRecv (Session * p)
 
 			if ( Errcode == WSAENOBUFS )
 			{
-				LOG_LOG (L"Network", LOG_WARNING, L"SessionID = 0x%p, ErrorCode = %ld WSAENOBUFS ERROR ", p->SessionID, Errcode);
+				LOG_LOG (L"Network", LOG_ERROR, L"SessionID = 0x%p, ErrorCode = %ld WSAENOBUFS ERROR ", p->SessionID, Errcode);
 			}
 			else
 			{
-				LOG_LOG (L"Network", LOG_ERROR, L"SessionID = 0x%p, ErrorCode = %ld PostRecv", p->SessionID, Errcode);
+				LOG_LOG (L"Network", LOG_DEBUG, L"SessionID = 0x%p, ErrorCode = %ld PostRecv", p->SessionID, Errcode);
 			}
 
 			shutdown (p->sock, SD_BOTH);

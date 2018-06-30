@@ -146,6 +146,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CreatePacket.h" />
     <ClInclude Include="lib\CrashDump.h" />
     <ClInclude Include="lib\Library.h" />
     <ClInclude Include="lib\Profiler.h" />
@@ -164,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChatServer_test.cpp" />
+    <ClCompile Include="CreatePacket.cpp" />
     <ClCompile Include="lib\APIHook.cpp" />
     <ClCompile Include="lib\Profiler.cpp" />
     <ClCompile Include="lib\System_Log.cpp" />
