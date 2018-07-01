@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "CreatePacket.h"
 #include "Protocol.h"
-
 Packet *PACKET_SC_CHAT_RES_LOGIN (BYTE Status, INT64 AccountNo)
 {
+	WORD Type = en_PACKET_CS_CHAT_RES_LOGIN;
 	Packet *pPacket = Packet::Alloc ();
-	*pPacket << en_PACKET_CS_CHAT_RES_LOGIN;
+	*pPacket << Type;
 	*pPacket << Status;
 	*pPacket << AccountNo;
 
@@ -14,8 +14,9 @@ Packet *PACKET_SC_CHAT_RES_LOGIN (BYTE Status, INT64 AccountNo)
 
 Packet * PACKET_SC_CHAT_REQ_SECTOR_MOVE (INT64 AccountNo, WORD PosX, WORD PosY)
 {
+	WORD Type = en_PACKET_CS_CHAT_RES_SECTOR_MOVE;
 	Packet *pPacket = Packet::Alloc ();
-	*pPacket << en_PACKET_CS_CHAT_RES_SECTOR_MOVE;
+	*pPacket << Type;
 	*pPacket << AccountNo;
 	*pPacket << PosX;
 	*pPacket << PosY;
@@ -38,11 +39,11 @@ Packet * PACKET_SC_CHAT_REQ_SECTOR_MOVE (INT64 AccountNo, WORD PosX, WORD PosY)
 //	}
 //
 //------------------------------------------------------------
-
 Packet * PACKET_SC_CHAT_REQ_MESSAGE (INT64 AccountNo, char * ID, int ID_Size, char * Nick, int Nick_Size, char * Msg, WORD Msg_Len)
 {
+	WORD Type = en_PACKET_CS_CHAT_RES_MESSAGE;
 	Packet *pPacket = Packet::Alloc ();
-	*pPacket << en_PACKET_CS_CHAT_RES_MESSAGE;
+	*pPacket << Type;
 	*pPacket << AccountNo;
 	pPacket->PutData (ID, ID_Size);
 	pPacket->PutData (Nick, Nick_Size);

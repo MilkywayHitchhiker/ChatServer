@@ -420,7 +420,7 @@ public:
 		Packet::Free (pPacket);
 
 
-		Packet *pPacket = PACKET_SC_CHAT_REQ_MESSAGE (AccountNo, ( char * )pPlayer->ID, sizeof (pPlayer->ID), ( char * )pPlayer->Nickname, sizeof (pPlayer->Nickname), ( char * )Message, MessageLen);
+		Packet *pMsgPacket = PACKET_SC_CHAT_REQ_MESSAGE (AccountNo, ( char * )pPlayer->ID, sizeof (pPlayer->ID), ( char * )pPlayer->Nickname, sizeof (pPlayer->Nickname), ( char * )Message, MessageLen);
 
 		delete Message;
 
@@ -436,13 +436,13 @@ public:
 			for ( iter = SectorList.begin (); iter != SectorList.end ();)
 			{
 				pUser = *iter;
-				SendPacket (pUser->SessionID, pPacket);
+				SendPacket (pUser->SessionID, pMsgPacket);
 
 				iter++;
 			}
 		}
 
-		Packet::Free (pPacket);
+		Packet::Free (pMsgPacket);
 
 		return;
 	}

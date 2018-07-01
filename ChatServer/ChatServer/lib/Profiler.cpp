@@ -15,7 +15,7 @@ bool ProfileStructher::Set_Profile (WCHAR *name, __int64 SetTime)
 			if ( Thread[TCnt].flag == false )
 			{
 				//인터락CompareExchange로 비교. false였다면 true로 바꾸고 다른 스레드에서 먼저 변경해서 true였다면 continue로 다음 배열 검색
-				if ( InterlockedCompareExchange (( volatile long * )&Thread[TCnt].flag, true, false) == true )
+				if ( InterlockedCompareExchange (( volatile long * )&Thread[TCnt].flag, 1, 0) == 1 )
 				{
 					continue;
 				}

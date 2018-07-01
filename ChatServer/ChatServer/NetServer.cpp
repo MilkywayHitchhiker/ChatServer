@@ -107,7 +107,7 @@ bool CNetServer::Stop (void)
 	//세션 정리
 	for ( int Cnt = 0; Cnt < _Session_Max; Cnt++ )
 	{
-		if ( Session_Array[Cnt].p_IOChk.UseFlag == true )
+		if ( Session_Array[Cnt].p_IOChk.UseFlag == 1 )
 		{
 			shutdown (Session_Array[Cnt].sock, SD_BOTH);
 		}
