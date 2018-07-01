@@ -5,6 +5,7 @@
 #include "NetServer.h"
 #include "Protocol.h"
 #include "ServerConfig.h"
+#include "CreatePacket.h"
 #include <map>
 #include <list>
 
@@ -334,17 +335,7 @@ public:
 
 
 		// 채팅서버 로그인 응답
-
-		WORD	Type = en_PACKET_CS_CHAT_RES_LOGIN;
-
-		BYTE	Status = 1;				// 0:실패	1:성공
-
-		Packet *ResPack = Packet::Alloc ();
-		*ResPack << Type;
-		*ResPack << Status;
-		*ResPack << AccountNo;
-
-		return ResPack;
+		return PACKET_SC_CHAT_RES_LOGIN (1, AccountNo);
 	}
 
 	Packet *PACKET_CS_CHAT_REQ_SECTOR_MOVE (QueuePack *Pack)
@@ -392,15 +383,7 @@ public:
 		pPlayer->PosY = SectorY;
 
 
-		WORD	Type = en_PACKET_CS_CHAT_RES_SECTOR_MOVE;
-
-		Packet *ResPack = Packet::Alloc ();
-		*ResPack << Type;
-		*ResPack << AccountNo;
-		*ResPack << SectorX;
-		*ResPack << SectorY;
-
-		return ResPack;
+		return PACKET_SC_CHAT_REQ_SECTOR_MOVE (AccountNo, SectorX, SectorY);
 	}
 
 	void PACKET_CS_CHAT_REQ_MESSAGE (QueuePack *Pack)
@@ -437,29 +420,7 @@ public:
 		Packet::Free (pPacket);
 
 
-		//------------------------------------------------------------
-		// 채팅서버 채팅보내기 응답  (다른 클라가 보낸 채팅도 이걸로 받음)
-		//
-		//	{
-		//		WORD	Type
-		//
-		//		INT64	AccountNo
-		//		WCHAR	ID[20]						// null 포함
-		//		WCHAR	Nickname[20]				// null 포함
-		//		
-		//		WORD	MessageLen
-		//		WCHAR	Message[MessageLen]		// null 미포함
-		//	}
-		//
-		//------------------------------------------------------------
-		WORD Type = en_PACKET_CS_CHAT_RES_MESSAGE;
-		Packet *NewPacket = Packet::Alloc ();
-		*NewPacket << Type;
-		*NewPacket << AccountNo;
-		NewPacket->PutData ((char *)pPlayer->ID, sizeof (pPlayer->ID));
-		NewPacket->PutData (( char * )pPlayer->Nickname, sizeof (pPlayer->Nickname));
-		*NewPacket << MessageLen;
-		NewPacket->PutData (( char * )Message, MessageLen);
+		Packet *pPacket = PACKET_SC_CHAT_REQ_MESSAGE (AccountNo, ( char * )pPlayer->ID, sizeof (pPlayer->ID), ( char * )pPlayer->Nickname, sizeof (pPlayer->Nickname), ( char * )Message, MessageLen);
 
 		delete Message;
 
@@ -475,13 +436,13 @@ public:
 			for ( iter = SectorList.begin (); iter != SectorList.end ();)
 			{
 				pUser = *iter;
-				SendPacket (pUser->SessionID, NewPacket);
+				SendPacket (pUser->SessionID, pPacket);
 
 				iter++;
 			}
 		}
 
-		Packet::Free (NewPacket);
+		Packet::Free (pPacket);
 
 		return;
 	}
