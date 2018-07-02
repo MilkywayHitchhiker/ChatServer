@@ -82,7 +82,7 @@ Packet::~Packet()
 void Packet::Initial(int iBufferSize)
 {
 	_iBufferSize = iBufferSize;
-
+	_EnCodeFlag = false;
 	if ( NULL == Buffer )
 	{
 		if ( BUFFER_DEFAULT < _iBufferSize )
@@ -420,12 +420,12 @@ bool Packet::EnCode (void)
 	char *ReadPosBuff;
 	
 	AcquireLOCK ();
-	if ( EnCodeFlag )
+	if ( _EnCodeFlag )
 	{
 		ReleaseLOCK ();
 		return true;
 	}
-	EnCodeFlag = true;
+	_EnCodeFlag = true;
 
 	int DataSize = _iDataSize;
 	unsigned char XORCode1 = _XORCode1;

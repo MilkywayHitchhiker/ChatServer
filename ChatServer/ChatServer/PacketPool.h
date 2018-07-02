@@ -172,7 +172,7 @@ private :
 	unsigned char _PacketCode;
 	char _XORCode1;
 	char _XORCode2;
-	bool EnCodeFlag = false;
+	bool _EnCodeFlag;
 
 
 	bool EnCode (void);

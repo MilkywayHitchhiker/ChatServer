@@ -539,7 +539,7 @@ ChatServer Chat;
 int main ()
 {
 	LOG_DIRECTORY (L"LOG_FILE");
-	LOG_LEVEL (LOG_DEBUG, false);
+	LOG_LEVEL (LOG_WARNING, false);
 
 	CServerConfig::Initialize ();
 	wprintf (L"MainThread Start\n");
