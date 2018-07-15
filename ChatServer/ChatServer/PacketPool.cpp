@@ -40,30 +40,6 @@ Packet::Packet(const Packet &SrcPacket) : Buffer (NULL),_iBufferSize (0), DataFi
 	return;
 }
 
-Packet::Packet (unsigned char PacketCode, char XOR_Code1, char XOR_Code2, int iBufferSize = 0)
-{
-
-	Buffer = NULL;
-	BufferExpansion = NULL;
-
-	_PacketCode = PacketCode;
-	_XORCode1 = XOR_Code1;
-	_XORCode2 = XOR_Code2;
-	srand (time (NULL));
-
-	//버퍼 사이즈를 입력하지 않는다면, 기본사이즈로 생성.
-	if ( iBufferSize == 0 )
-	{
-		Initial ();
-	}
-	else
-	{
-		Initial (iBufferSize);
-	}
-
-	return;
-}
-
 
 
 Packet::~Packet()
@@ -73,16 +49,11 @@ Packet::~Packet()
 	return;
 }
 
-
-
-
-
-
 // 패킷 초기화.
 void Packet::Initial(int iBufferSize)
 {
 	_iBufferSize = iBufferSize;
-	_EnCodeFlag = false;
+
 	if ( NULL == Buffer )
 	{
 		if ( BUFFER_DEFAULT < _iBufferSize )
@@ -112,9 +83,27 @@ void Packet::Initial(int iBufferSize)
 	_iDataSize = 0;
 	HeaderSize = 0;
 	iRefCnt = 1;
-	
+	if ( _DeCodeFlag == true )
+	{
+		LOG_LOG (L"Packet", LOG_SYSTEM, L"Double DeCode Error");
+	}
+
+	_EnCodeFlag = false;
+	_DeCodeFlag = false;
+
+
 	return;
 }
+
+//암호화 코드
+void	Packet::EncryptionCode (unsigned char PacketCode, char XOR_Code1, char XOR_Code2)
+{
+	_PacketCode = PacketCode;
+	_XORCode1 = XOR_Code1;
+	_XORCode2 = XOR_Code2;
+	srand (time (NULL));
+}
+
 
 //RefCnt를 1 증가시킴. 
 void Packet::Add (void)
@@ -441,7 +430,7 @@ bool Packet::EnCode (void)
 
 	//2. CheckSum Payload 부분을 1byte 씩 모두 더해서 % 256 한 unsigned char 값
 	ReadPosBuff = ReadPos;
-	int CheckSum = 0;
+	unsigned int CheckSum = 0;
 	for ( int Cnt = 0; Cnt < DataSize; Cnt++ )
 	{
 		CheckSum += ReadPosBuff[Cnt];
@@ -475,10 +464,10 @@ bool Packet::EnCode (void)
 	}
 
 	//지역변수 Buff의 Data를 HeaderPos로 옮김.
-	PutHeader ((char *)&Header.CheckSum, 1);
+	PutHeader (( char * )&Header.CheckSum, 1);
 	PutHeader (( char * )&Header.RandXOR, 1);
 	PutHeader (( char * )&Header.Len, 2);
-	PutHeader (( char * )&Header.Code, 1);
+	PutHeader (&Header.Code, 1);
 
 
 	ReleaseLOCK ();
@@ -501,10 +490,18 @@ bool Packet::EnCode (void)
 bool Packet::DeCode (HEADER *SrcHeader)
 {
 	HEADER Buff;
+
+	if ( _DeCodeFlag == true )
+	{
+		LOG_LOG (L"Packet", LOG_SYSTEM, L"Double DeCode Error");
+	}
+
+	_DeCodeFlag = true;
+
 	if ( SrcHeader == NULL )
 	{
-		GetData (( char * )&Buff.Code, 1);
-		GetData (( char * )&Buff.Len, 2);
+//		GetData (( char * )&Buff.Code, 1);
+//		GetData (( char * )&Buff.Len, 2);
 		GetData (( char * )&Buff.RandXOR, 1);
 		GetData (( char * )&Buff.CheckSum, 1);
 	}
@@ -552,15 +549,18 @@ bool Packet::DeCode (HEADER *SrcHeader)
 
 	//5. Payload 를 checksum 공식으로 계산 후 패킷의 checksum 과 비교
 	ReadPosBuff = ReadPos;
-	int CheckSum = 0;
+	unsigned int ChkBuf = 0;
 	for ( int Cnt = 0; Cnt < DataSize; Cnt++ )
 	{
-		CheckSum += ReadPosBuff[Cnt];
+		ChkBuf += ReadPosBuff[Cnt];
 	}
-	unsigned char Chk = ( unsigned char )CheckSum % 256;
+	unsigned char Chk = ( unsigned char )ChkBuf;
+
+	_DeCodeFlag = false;
 
 	if ( Buff.CheckSum != Chk )
 	{
+		LOG_LOG (L"Packet", LOG_SYSTEM, L"CheckSumError Header CheckSum = %x, Decode CheckSum = %x, DataSize = %d ChkBuf = %x", Buff.CheckSum, Chk, DataSize, ChkBuf);
 		return false;
 	}
 	return true;

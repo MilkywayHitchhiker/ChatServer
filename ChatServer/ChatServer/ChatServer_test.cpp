@@ -232,7 +232,7 @@ public:
 
 					}
 
-					LOG_LOG (L"Update", LOG_ERROR, L"SessionID 0x%p, PacketError HeaderSize = %d, DataSize = %d, GetSize = %d, PutSize = %d, ErrorType = %s", Err.UseHeaderSize, Err.UseDataSize, Err.GetSize, Err.PutSize, GetErr);
+					LOG_LOG (L"Update", LOG_ERROR, L"SessionID 0x%p, PacketError HeaderSize = %d, DataSize = %d, GetSize = %d, PutSize = %d, ErrorType = %s", Pack->SessionID,Err.UseHeaderSize, Err.UseDataSize, Err.GetSize, Err.PutSize, GetErr);
 
 					if ( Pack->packet != NULL )
 					{
@@ -603,15 +603,17 @@ int main ()
 				Chat.Stop ();
 			}
 		}
+		PROFILE_KEYPROC ();
 
+		/*
 		if ( GetAsyncKeyState ('E') & 0x8001 )
 		{
 			Chat.Stop ();
 			break;
 		}
 
-		PROFILE_KEYPROC ();
-		/*
+
+		
 		else if ( GetAsyncKeyState ('S') & 0x8001 )
 		{
 		Chat.Start (L"127.0.0.1", 6000, 200, 3);

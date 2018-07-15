@@ -41,12 +41,14 @@ public:
 			Packet();
 			Packet(int iBufferSize);
 			Packet(const Packet &SrcPacket);
-			Packet (unsigned char PacketCode,char XOR_Code1,char XOR_Code2,int iBufferSize);
 
 	virtual	~Packet();
 
 	// 패킷 초기화.
 	void	Initial(int iBufferSize = BUFFER_DEFAULT);
+
+	//암호화 코드
+	void	EncryptionCode (unsigned char PacketCode, char XOR_Code1, char XOR_Code2);
 
 	//RefCnt를 1 증가시킴. 
 	void	Add (void);
@@ -173,6 +175,7 @@ private :
 	char _XORCode1;
 	char _XORCode2;
 	bool _EnCodeFlag;
+	bool _DeCodeFlag;
 
 
 	bool EnCode (void);

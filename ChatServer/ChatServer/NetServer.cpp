@@ -306,6 +306,7 @@ void CNetServer::AcceptThread (void)
 		ling.l_onoff = 1;
 		ling.l_linger = 0;
 		setsockopt (p->sock, SOL_SOCKET, SO_LINGER, ( char * )&ling, sizeof (ling));
+
 		PostRecv (p);
 
 		InterlockedIncrement (( volatile long * )&_AcceptTPS);
@@ -410,7 +411,7 @@ void CNetServer::WorkerThread (void)
 
 				PROFILE_BEGIN (L"recv");
 				pSession->RecvQ.MoveWritePos (Transferred);
-
+				bool DeCodeflag;
 				//패킷 처리.
 				while ( 1 )
 				{
@@ -439,8 +440,8 @@ void CNetServer::WorkerThread (void)
 						break;
 					}
 					pSession->RecvQ.RemoveData (sizeof (Header.Len));
-					pSession->RecvQ.Get (( char * )&Header.RandXOR, sizeof (Header.RandXOR));
-					pSession->RecvQ.Get (( char * )&Header.CheckSum, sizeof (Header.CheckSum));
+	//				pSession->RecvQ.Get (( char * )&Header.RandXOR, sizeof (Header.RandXOR));
+	//				pSession->RecvQ.Get (( char * )&Header.CheckSum, sizeof (Header.CheckSum));
 
 					Size = pSession->RecvQ.GetUseSize ();
 
@@ -450,13 +451,13 @@ void CNetServer::WorkerThread (void)
 					pSession->RecvQ.Get (Pack->GetBufferPtr(), Size);
 
 					Pack->MoveWritePos (Size);
-
+					DeCodeflag = Pack->DeCode ();
 					//디코드 한 CheckSum 값이 맞지 않는다.
-					if ( Pack->DeCode (&Header) == false )
+					if ( DeCodeflag == false )
 					{
+						Packet::Free (Pack);
 						LOG_LOG (L"Network", LOG_ERROR, L"SessionID 0x%p, Decode Error CheckSum", pSession->SessionID);
 						shutdown (pSession->sock, SD_BOTH);
-						Packet::Free (Pack);
 						break;
 					}
 
@@ -495,7 +496,10 @@ void CNetServer::WorkerThread (void)
 
 				}
 
-				PostRecv (pSession);
+				if ( DeCodeflag )
+				{
+					PostRecv (pSession);
+				}
 
 				PROFILE_END (L"recv");
 
@@ -732,11 +736,6 @@ void CNetServer::PostSend (Session *p, bool Disconnect)
 
 	p->SendDisconnect = Disconnect;
 
-	if ( p->p_IOChk.UseFlag == false )
-	{
-		return;
-	}
-
 	if ( InterlockedIncrement (( volatile long * )&p->p_IOChk.IOCount) == 1 )
 	{
 		IODecrement (p);
@@ -772,8 +771,8 @@ void CNetServer::PostSend (Session *p, bool Disconnect)
 
 	if ( Cnt == 0 )
 	{
-		IODecrement (p);
 		p->SendFlag = FALSE;
+		IODecrement (p);
 		return;
 	}
 
