@@ -33,16 +33,21 @@ protected:
 		SOCKET sock;
 		UINT64 SessionID;
 
-		
-		long SendFlag = FALSE;
-		bool SendDisconnect = FALSE;
+		long SendFlag;
+		bool SendDisconnect;
 		CQueue_LF<Packet *> SendQ;
 		OVERLAPPED SendOver;
 		CStack_LF<Packet *> SendPack;
 
 		CRingbuffer RecvQ;
 		OVERLAPPED RecvOver;
-		
+		unsigned char Release;
+		Session (void)
+		{
+			Release = 0;
+			SendFlag = FALSE;
+			SendDisconnect = FALSE;
+		}
 	};
 
 	HANDLE _IOCP;
